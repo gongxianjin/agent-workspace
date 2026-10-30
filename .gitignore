@@ -1,0 +1,23 @@
+# Bundled redistributable binaries (claude/chrome/node, ~700MB) —
+# exceed GitHub's 100MB file limit; distributed separately.
+**/native-assets/
+
+# Local runtime state: sqlite databases, locks, private access tokens
+**/userdata/
+*.sqlite3
+service.lock
+
+# Python build artifacts
+__pycache__/
+*.pyc
+
+# Generated per-machine (contains absolute local paths)
+native-runtime.json
+
+# Runtime run-directories under dist/p1/ hold per-session launch tokens;
+# keep checked-in sample files (dist/p1/*.json) but not run output
+**/dist/p1/*/
+
+# Original distribution archive dir (content promoted to repo root);
+# userdata/ inside holds local runtime state
+relay-workbench-*/

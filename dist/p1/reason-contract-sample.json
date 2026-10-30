@@ -1,0 +1,92 @@
+[
+  {
+    "args": [
+      "listen",
+      "--as",
+      "sample-control",
+      "--wait",
+      "0"
+    ],
+    "pid": 29420,
+    "exitCode": 0,
+    "treeStopped": true,
+    "timedOut": false,
+    "outputLimited": false,
+    "stdout": "No messages. You are 61769/sample-control.\n",
+    "stderr": ""
+  },
+  {
+    "args": [
+      "listen",
+      "--as",
+      "sample-worker",
+      "--wait",
+      "0"
+    ],
+    "pid": 15040,
+    "exitCode": 0,
+    "treeStopped": true,
+    "timedOut": false,
+    "outputLimited": false,
+    "stdout": "No messages. You are 61769/sample-worker.\n",
+    "stderr": ""
+  },
+  {
+    "args": [
+      "who",
+      "--all",
+      "--json"
+    ],
+    "pid": 27708,
+    "exitCode": 0,
+    "treeStopped": true,
+    "timedOut": false,
+    "outputLimited": false,
+    "stdout": "{\n  \"team\": null,\n  \"person\": \"61769\",\n  \"machine\": \"gongme\",\n  \"machines\": [\n    {\n      \"person\": \"61769\",\n      \"machine\": \"gongme\",\n      \"endpoint\": \"ed0b8742befcd0a12d434a919c1b9b6de4f82d721e91f6a6dfbf7a40fda16f59\",\n      \"is_me\": true,\n      \"online\": true,\n      \"link\": null,\n      \"rtt_ms\": null,\n      \"last_seen\": null\n    }\n  ],\n  \"sessions\": [\n    {\n      \"address\": \"61769/sample-control\",\n      \"name\": \"sample-control\",\n      \"person\": \"61769\",\n      \"machine\": \"gongme\",\n      \"agent\": \"cli\",\n      \"cwd\": \"~\\\\Documents\\\\project\\\\vending-middle-trade-platform\\\\docs\\\\v1.0\\\\agent-workbench-prototype\",\n      \"repo\": \"gongme/vending-middle-trade-platform\",\n      \"branch\": \"feature/v2-platform-optimization\",\n      \"status\": \"idle\",\n      \"since\": 1792566991928,\n      \"doing\": null,\n      \"tier\": \"turn\",\n      \"unread\": 0,\n      \"is_me\": false\n    },\n    {\n      \"address\": \"61769/sample-worker\",\n      \"name\": \"sample-worker\",\n      \"person\": \"61769\",\n      \"machine\": \"gongme\",\n      \"agent\": \"cli\",\n      \"cwd\": \"~\\\\Documents\\\\project\\\\vending-middle-trade-platform\\\\docs\\\\v1.0\\\\agent-workbench-prototype\",\n      \"repo\": \"gongme/vending-middle-trade-platform\",\n      \"branch\": \"feature/v2-platform-optimization\",\n      \"status\": \"idle\",\n      \"since\": 1792566992114,\n      \"doing\": null,\n      \"tier\": \"turn\",\n      \"unread\": 0,\n      \"is_me\": false\n    },\n    {\n      \"address\": \"61769/aios-sandbox-server-fb\",\n      \"name\": \"aios-sandbox-server-fb\",\n      \"person\": \"61769\",\n      \"machine\": \"gongme\",\n      \"agent\": \"claude-code\",\n      \"cwd\": \"~\\\\Documents\\\\project\\\\sandbox\\\\aios-sandbox-server\",\n      \"repo\": \"ai-sandbox/aios-sandbox-server\",\n      \"branch\": \"feat/sandbox-v0.3\",\n      \"status\": \"busy\",\n      \"since\": 1792566473274,\n      \"doing\": \"bobot 镜像环境\",\n      \"tier\": \"none\",\n      \"unread\": 0,\n      \"is_me\": false\n    },\n    {\n      \"address\": \"61769/bhp1-1-a9\",\n      \"name\": \"bhp1-1-a9\",\n      \"person\": \"61769\",\n      \"machine\": \"gongme\",\n      \"agent\": \"claude-code\",\n      \"cwd\": \"~\\\\Documents\\\\project\\\\hpc\\\\self-docs\\\\bhp1.1\",\n      \"repo\": null,\n      \"branch\": null,\n      \"status\": \"busy\",\n      \"since\": 1792564140186,\n      \"doing\": \"队列与调度策略调研文档\",\n      \"tier\": \"none\",\n      \"unread\": 0,\n      \"is_me\": false\n    },\n    {\n      \"address\": \"61769/openfuyao-ff\",\n      \"name\": \"openfuyao-ff\",\n      \"person\": \"61769\",\n      \"machine\": \"gongme\",\n      \"agent\": \"claude-code\",\n      \"cwd\": \"~\\\\Documents\\\\project\\\\openFuyao\",\n      \"repo\": null,\n      \"branch\": null,\n      \"status\": \"idle\",\n      \"since\": 1792468181080,\n      \"doing\": \"Kata VM 快照恢复\",\n      \"tier\": \"none\",\n      \"unread\": 0,\n      \"is_me\": false\n    },\n    {\n      \"address\": \"61769/real-cli-shell-reason-integration\",\n      \"name\": \"real-cli-shell-reason-integration\",\n      \"person\": \"61769\",\n      \"machine\": \"gongme\",\n      \"agent\": \"claude-code\",\n      \"cwd\": \"~\\\\Documents\\\\project\\\\vending-middle-trade-platform\\\\docs\\\\v1.0\",\n      \"repo\": \"gongme/vending-middle-trade-platform\",\n      \"branch\": \"feature/v2-platform-optimization\",\n      \"status\": \"busy\",\n      \"since\": 1792566377022,\n      \"doing\": \"real-cli-shell-reason-integration\",\n      \"tier\": \"none\",\n      \"unread\": 0,\n      \"is_me\": false\n    }\n  ]\n}\n",
+    "stderr": ""
+  },
+  {
+    "args": [
+      "send",
+      "61769/sample-worker",
+      "--from",
+      "sample-control",
+      "-"
+    ],
+    "pid": 23304,
+    "exitCode": 0,
+    "treeStopped": true,
+    "timedOut": false,
+    "outputLimited": false,
+    "stdout": "→ 61769/sample-worker: queued: it gets it the next time it listens\nmessage id 01M5EN37HFXDFYY2JBF262HAER\n",
+    "stderr": ""
+  },
+  {
+    "args": [
+      "listen",
+      "--as",
+      "sample-worker",
+      "--wait",
+      "1"
+    ],
+    "pid": 11312,
+    "exitCode": 0,
+    "treeStopped": true,
+    "timedOut": false,
+    "outputLimited": false,
+    "stdout": "<reason-message from=\"61769/sample-control\" agent=\"cli\" repo=\"gongme/vending-middle-trade-platform\" id=\"01M5EN37HFXDFYY2JBF262HAER\">\n{\"kind\": \"SAMPLE\", \"nonce\": \"format-contract-only\", \"body\": \"hello\\nworld\"}\n</reason-message>\nFrom 61769's agent. Reply if useful: reason-network send 61769/sample-control --from 61769/sample-worker \"<reply>\"\n",
+    "stderr": ""
+  },
+  {
+    "args": [
+      "daemon"
+    ],
+    "pid": 15120,
+    "exitCode": 1,
+    "treeStopped": true,
+    "timedOut": false,
+    "outputLimited": false,
+    "stdout": "",
+    "stderr": "[1792566990954] listening on \\\\.\\pipe\\reason-network-c7578750919e7dc0 as 61769@gongme\n[1792566991995] session 61769/sample-control (cli:sample-control) registered\n[1792566992115] session 61769/sample-worker (cli:sample-worker) registered\n"
+  }
+]

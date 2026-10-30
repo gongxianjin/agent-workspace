@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'">
+<title>接力工作台 · 安装与使用手册</title>
+<style>
+:root{color-scheme:light;--ink:#18252d;--muted:#53646b;--line:#d9e2e6;--accent:#087e8b;--paper:#fff;--wash:#f2f7f8}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--wash);color:var(--ink);font:16px/1.8 system-ui,"Microsoft YaHei",sans-serif;overflow-wrap:anywhere}main{max-width:1080px;margin:auto;padding:32px 24px 80px}header{padding:28px;border-radius:18px;background:#173b46;color:white}header p{color:#e1f0f1;margin:8px 0}.eyebrow{letter-spacing:.12em;font-size:13px}h1{font-size:30px;line-height:1.4;margin:10px 0}h2{font-size:23px;margin:0 0 16px}h3{font-size:18px;margin:24px 0 8px}section,nav{margin-top:22px;padding:24px;background:var(--paper);border:1px solid var(--line);border-radius:14px}nav ol{columns:2;column-gap:30px}a{color:var(--accent);text-underline-offset:3px}a:focus-visible{outline:3px solid #de8a29;outline-offset:3px}li{margin-bottom:8px}p{margin:10px 0}code{background:#edf3f5;padding:2px 5px;border-radius:4px;white-space:normal}pre{padding:16px;background:#edf3f5;border-radius:8px;white-space:pre-wrap;overflow-wrap:anywhere;font:14px/1.7 Consolas,monospace}table{border-collapse:collapse;width:100%;table-layout:fixed;font-size:14px}th,td{border:1px solid var(--line);padding:10px;vertical-align:top;text-align:left}th{background:#eaf2f4}.note,.warn{padding:14px 18px;border-left:4px solid var(--accent);background:#edf8f7}.warn{border-color:#b36b1b;background:#fff6e9}.muted{color:var(--muted)}.flow{font-weight:600;color:#146373}footer{text-align:center;color:var(--muted);margin-top:30px}@media(max-width:600px){main{padding:16px 12px 40px}header,section,nav{padding:18px}h1{font-size:25px}h2{font-size:21px}nav ol{columns:1}th,td{padding:7px;font-size:13px}}@media print{body{background:white}main{max-width:none;padding:0}section,nav,header{border-radius:0;break-inside:avoid}header{background:white;color:black;border:1px solid #aaa}header p{color:black}a{color:inherit}nav{display:none}}
+</style>
+</head>
+<body><main>
+<header><div class="eyebrow">接力 · 三 CLAUDE 本机协作工作台</div><h1>安装与使用手册</h1><p>Windows x64 功能预览版 · 2026-10-23</p><p>给第一次使用的人：不需要阅读开发台账。按下面的顺序准备，再用自己的 Claude Code 开始工作。</p></header>
+<div class="warn"><strong>先看版本边界：</strong>这是功能预览，不是所有 Windows、所有 Claude 配置均已验收的稳定版。干净 Windows、最新原生 Claude 流式兼容及完整三岗位真实模型闭环尚未完成复验。免费自动化测试不能替代这些验证。接收者应先用非敏感的小型静态网页项目试用。</div>
+<nav aria-label="手册目录"><h2>目录</h2><ol>
+<li><a href="#quick">第一次使用：最短路径</a></li><li><a href="#requirements">电脑、账号与网络要求</a></li><li><a href="#unpack">下载、校验与完整解压</a></li><li><a href="#claude">自己安装并登录 Claude Code</a></li><li><a href="#first-run">双击启动与首次准备</a></li><li><a href="#workflow">完整工作流程与小例子</a></li><li><a href="#output">怎样看真实输出和状态</a></li><li><a href="#cost">费用、暂停、终止与重试</a></li><li><a href="#data">产物、数据、备份与迁移</a></li><li><a href="#troubleshooting">故障处理对照表</a></li><li><a href="#handoff">交给其他人、更新与卸载</a></li><li><a href="#checklist">首次使用验收清单</a></li>
+</ol></nav>
+<section id="quick"><h2>1. 第一次使用：最短路径</h2>
+<ol><li>拿到完整的 Windows 便携 ZIP 和对应 SHA256。只有源码、单个 HTML 或旧内部候选不算完整交付。</li><li>全部解压至<strong>本地、可写、短路径</strong>，建议整个 <code>workbench</code> 路径不超过 80 个字符，例如 <code>D:\Apps\workbench</code>；没有 D 盘就选自己的短目录。</li><li>双击 <code>start-workbench.cmd</code>，后台自动启动并打开网页。首次可能短暂闪出命令窗口。</li><li>阅读页面展示的随包条款，自行决定是否同意；不同意可以退出，不执行后续检测或下载。</li><li>按官方文档自己安装、登录 Claude Code。工作台不随包提供 Claude、账号、密钥和额度。</li><li>网页点击<strong>“确认并准备测试浏览器”</strong>，阅读提示并确认，才会从官方源下载约 173 MiB。完成后点<strong>“重新检测（不调用模型）”</strong>。</li><li>状态允许后，按“需求 → 设计 → 下载修改 → 上传 → 拆分审核 → 手动开始 → 测试 → 人工验收”操作。</li><li>结束时等所有项目停稳，点网页<strong>“退出工作台”</strong>。关闭标签不等于退出后台。</li></ol>
+<p class="note"><strong>日常使用：</strong>只需双击同一个 CMD。无需每次打开终端，无需每次重新安装或下载。重复双击只重开已有实例，不应为重开网页而结束进程。</p>
+</section>
+<section id="requirements"><h2>2. 电脑、账号与网络要求</h2>
+<table><thead><tr><th>项目</th><th>要求与实际边界</th></tr></thead><tbody>
+<tr><td>系统</td><td>首版面向 Windows x64，本机验证环境为 Windows 11 Pro 10.0.26200。Windows 10／11 干净系统尚未验收；ARM64、macOS、Linux 和网络共享目录不在本版支持范围。</td></tr>
+<tr><td>运行时</td><td>完整包自带 Python 3.14.3、Node 24.14.0、Playwright/core 1.58.2、reason-network 0.10.8；不要求使用者另装这些运行时，不需要 npm install 或构建。</td></tr>
+<tr><td>浏览器</td><td>用自己的常用浏览器打开工作台；自动化测试另需固定 Chrome for Testing 145.0.7632.6（revision 1208），由首次明确确认后下载，不安装到系统。</td></tr>
+<tr><td>Claude</td><td>每个人自己安装并登录原生 Claude Code。当前本机 CLI 为 2.1.307；兼容性按所需命令参数检测，不是仅按版本号承诺所有新旧版本可用。</td></tr>
+<tr><td>账号与费用</td><td>使用自己的订阅、Console 或已有提供商配置。工作台不提供免费模型额度，不代选套餐，不收集或复制密钥。</td></tr>
+<tr><td>网络</td><td>需要访问官方浏览器下载源和自己配置的模型服务。工作台本身监听 127.0.0.1，不是云端多人服务；本地运行不等于模型离线。</td></tr>
+<tr><td>存储</td><td>预留完整包、约181MB浏览器下载、解压临时副本与项目空间；建议至少留 2GB 可用空间，这是使用建议，不是运行中磁盘保证。项目及证据会继续增长。</td></tr>
+<tr><td>适用任务</td><td>本服务新建的受管理项目、无需依赖安装或构建的静态 HTML/CSS/JS。不能把任意现有业务仓库、后端部署或复杂构建任务直接交给本版。</td></tr>
+</tbody></table>
+</section>
+<section id="unpack"><h2>3. 下载、校验与完整解压</h2>
+<ol><li>只使用可信发送者提供的干净 ZIP；同时核对发送者另行给出的 SHA256。同目录校验文件能发现损坏，但不能独立证明发送者身份。</li><li>可选：在 PowerShell 中核对，替换为实际 ZIP 的完整路径：<pre>Get-FileHash -Algorithm SHA256 -LiteralPath 'D:\Downloads\relay-workbench-win-x64.zip'</pre>把显示的完整 64 位摘要与发送者提供的值逐字比较；不同就停止使用，不修改清单凑匹配。</li><li>右键 ZIP → “全部解压”。确保不是运行压缩包预览里的 CMD。不要将目录反复套成 <code>workbench\workbench\workbench</code>。</li><li>选择自己有写入权限的短目录。中文和空格可以使用，<strong>不要放在 Program Files、网络盘、同步盘、临时解压目录或过深路径</strong>。不需要管理员身份。</li><li>解压后至少应看到：<pre>workbench/
+  start-workbench.cmd    日常启动入口
+  START-HERE.txt        快速说明
+  USER-GUIDE.html       本手册；双击可离线阅读
+  portable.json         固定文件摘要与依赖路径
+  DEPENDENCIES.json     随包组件版本与来源
+  DISTRIBUTION-TERMS.txt
+  index.html / *.js / styles.css
+  p1/                   本机后台
+  vendor/               包内运行时
+  licenses/             已保留的通知
+  PREVIEW-STATUS.txt    预览版范围（交付包附带）</pre></li></ol>
+<p>第一次启动后才出现 <code>userdata/</code>。干净 ZIP 不应含任何人的项目、登录、同意记录或运行证据。不要修改、删除 <code>portable.json</code> 或 <code>vendor/</code> 中的文件；校验失败不会偷偷改用发送者电脑的全局工具。</p>
+<p class="warn">Windows 深路径可能导致浏览器资源解压失败。本机已复现同一已核验归档在269字符目标路径失败、短目录成功；当前会在部分写入前明确拒绝过长目标并指导移到短目录，不会修改注册表或开启系统长路径。2026-10-23本机新短目录的生产官方下载、完整大小与SHA256、安全解压、真实浏览器自检及receipt检查已通过（317.409秒、单次尝试）；这不是任意网络或干净Windows保证，历史TLS失败仍保留。</p>
+</section>
+<section id="claude"><h2>4. 自己安装并登录 Claude Code</h2>
+<ol><li>打开 <a href="https://code.claude.com/docs/en/setup" target="_blank" rel="noopener noreferrer">Claude Code 官方安装说明</a>，选择 Windows／原生安装。按官方当前步骤准备所需 Git for Windows；其官网为 <a href="https://git-scm.com/downloads/win" target="_blank" rel="noopener noreferrer">git-scm.com</a>。不要从聊天或不明网盘复制安装脚本。</li><li>由你在自己的终端完成安装。工作台不会自动运行远程安装脚本、全局安装、更新客户端或修改认证配置。官方文档可能变更，本手册不固定一条未经本轮在线核实的远程安装命令。</li><li>安装后重新打开终端，先检查：<pre>claude --version</pre>若找不到命令，按官方文档核对安装和当前终端环境。不要向工作台填任意 exe 路径。</li><li>用自己的账号登录：<pre>claude auth login</pre>按 CLI 和浏览器的官方提示完成。已有自定义提供商配置的，按该配置原有接入方式操作，不为了工作台强行覆盖它。</li><li>回工作台点击“重新检测（不调用模型）”。首次安装／登录可用终端；以后正常使用不要求一直开着终端。</li></ol>
+<p><strong>如果正在这次 Claude Code 对话里操作：</strong>需要自己运行交互登录时，可在提示框输入 <code>! claude auth login</code>，它会在当前会话执行；也可以使用自己的终端。普通接收者不需要安装这个聊天会话。</p>
+<p class="warn">不要在工作台、需求、任务驳回理由、截图或求助日志中粘贴 API key、登录 token、密码、认证环境变量值。工作台不共享发送者的账号，也不会把发送者的登录打进 ZIP。</p>
+</section>
+<section id="first-run"><h2>5. 双击启动与首次准备</h2>
+<h3>5.1 正常启动</h3><p>双击 <code>start-workbench.cmd</code>。自动打开的是动态本机地址 <code>http://127.0.0.1:某端口/</code>，不用记端口，也不用手动输入登录 URL。启动器可能短暂闪出窗口，然后后台由包内 Python 承载；不是安装常驻系统服务。</p>
+<p><strong>不要把 index.html 当真实入口：</strong>直接打开它是明确标注的历史模拟，不调用 AI。页面出现“模拟”“本地静态页面”时，请改用 CMD。HTTP 连接失败不会降级成模拟。</p>
+<h3>5.2 两次独立确认</h3><ol><li>随包组件条件：先阅读页面完整正文，自己决定是否点击“我已阅读并同意当前发行条款”。不同意可以退出。确认绑定正文摘要，正文变化需重确认；不因此自动下载、检测或调用模型。</li><li>测试浏览器：点“确认并准备测试浏览器”，在提示中明确确认。固定源为 <code>cdn.playwright.dev</code>，允许官方 <code>storage.googleapis.com</code> 重定向。显示实际字节，完成大小与 SHA256 校验、安全解压及本地浏览器自检后才就绪。</li></ol>
+<p>固定下载约 173 MiB（181196793字节）。慢网络可能需要几分钟；显示的是实际状态，不承诺固定结束时间。失败不自动重试，刷新不重新下载。处理原因后再次明确确认才会重试；失败的临时文件不作为可用浏览器安装，已有未知目录不被覆盖。准备期间不能退出或移动文件夹。</p>
+<h3>5.3 看懂“重新检测”</h3><table><thead><tr><th>显示项</th><th>你该做什么</th></tr></thead><tbody>
+<tr><td>客户端缺失</td><td>按第4节安装自己电脑的原生 Claude Code，再重检。</td></tr><tr><td>版本／参数不兼容</td><td>参考官方说明由自己更新客户端；工作台不自动更新。</td></tr><tr><td>明确未登录</td><td>自己登录，再重检；不会允许模型任务入队。</td></tr><tr><td>登录未知</td><td>未知不等于已登录。确认自己已有配置确实可用、且必需参数与本地依赖通过后，可自行选择“使用已有本机配置继续（接入未验证）”；它不运行模型，下一次重检会撤销该确认。</td></tr><tr><td>依赖自检失败</td><td>先确认浏览器准备完成、包完整、路径短且可写，按故障表处理。</td></tr><tr><td>本地自检通过</td><td>只说明固定本地检测通过，不证明模型网络、额度、真实流式协议或完整闭环。</td></tr>
+</tbody></table><p>检测固定执行 Claude version／help／auth status，另做本机依赖与真实 Chromium 检查，<strong>不调用模型</strong>。刷新只读取缓存，不自动重检；不要把检测绿灯理解为“之后不会收费或不会失败”。</p>
+</section>
+<section id="workflow"><h2>6. 完整工作流程与小例子</h2><p class="flow">需求 → 生成设计 → 下载修改 → 上传确认 → 按上传版拆分 → 逐项审核 → 手动开始 → 开发 → 独立测试 → 显式返修／复测 → 人工验收</p>
+<h3>6.1 推荐的第一次试用需求</h3><pre>做一个不需要构建和外部依赖的静态待办清单网页。
+文件限 index.html、styles.css、app.js。
+支持新增、完成、删除、按未完成筛选；空内容不能新增。
+在普通独立浏览器中刷新后保留数据；375px宽度不横向溢出。
+不接外部API、不需要登录、不安装任何包。
+请写清各功能的可操作验收步骤。</pre><p>这只是供你填写的示例，不是预生成交付物；真实点击生成会调用你自己的模型，可能计费。</p>
+<h3>6.2 设计文档不是自动批准</h3><ol><li>在工作台新建独立项目，填自己的需求，使用三个 Claude 岗位。只支持本服务创建的项目，不填现有业务目录。</li><li>点“生成设计文档（真实 Claude）”。这是架构岗位的实际模型调用，生成完仍不能直接开工。</li><li>下载设计文档，用编辑器逐项检查范围、文件、约束、验收操作。修改后另存严格 UTF-8 的 <code>.md</code> 或 <code>.txt</code>，不超过256KiB。</li><li>上传确认版，核对正文、U版本与 SHA256。只有上传的版本作为拆分依据；旧生成／下载动作不等于人工批准。</li><li>点“按上传版本拆分（真实 Claude）”。改变需求或重新上传会使旧批准失效，不能沿用旧版本直接执行。</li></ol>
+<h3>6.3 逐项通过或驳回</h3><p>逐个看职责、说明、验收点和依赖。合理就点“通过此任务”；不合理写具体原因后驳回，再点“仅重做此任务”。例如：</p><pre>驳回原因：验收只写“功能正常”，没有验证空输入和刷新持久化。
+请补充可执行步骤；不要改动无关任务的范围。</pre><p>只重做被驳回项，无关任务内容、版本和批准保留；受影响的下游会要求显式重审。<strong>全部通过只解锁开始按钮，不自动开工。</strong>最后由你手动开始真实开发。</p>
+<h3>6.4 开发、测试与最终验收</h3><ol><li>开发岗位、测试岗位是独立原生 Claude CLI，按阶段串行交接；reason-network 保留 TASK → 模型显式 ACK → RESULT。不是本聊天子 Agent 冒充岗位。</li><li>测试使用独立检查与宿主可信复跑。首次实际浏览器检查返回测试员前冻结测试文件；开发者不能改测试期望凑通过。</li><li>失败后需要你明确发起返修，最多两轮，再按冻结规格复测。协议失败的显式重试与返修不是同一个按钮。</li><li>到“实际测试通过，待人工验收”，查看产物、实际证据与所有需求。自动检查通过不代表所有自然语言验收点已覆盖，也不代表视觉质量已由人确认。</li><li>只有你自己确认，才记录人工验收。需要时可显式重新独立测试，会再次调用测试岗位。</li></ol>
+<p class="note">真实模式没有“手点开发完成／测试通过”的捷径。ACK只证明该阶段的协议回执，RESULT或exit0也不能代替实际证据。生成的预制演示和真实项目必须区分。</p>
+</section>
+<section id="output"><h2>7. 怎样看真实输出和状态</h2><p>切到<strong>“Claude 实时输出”</strong>标签，看当前岗位、attempt、实际 PID，以及排队／准备与 CLI 运行分别计时。</p>
+<ul><li>只显示真实公开 assistant 文本和宿主实际工具起止，不显示思维链、system/user消息、工具参数、原始结果或stderr。</li><li>“超时剩余”依据实际进程等待 deadline，<strong>不是预计完成时间</strong>；不会编造百分比。</li><li>模型可能只调用工具，设计正文可能只经结果工具提交。此时“暂无公开文本”不等于没有工作，不会伪造撰写步骤。</li><li>30秒无可展示事件只提示静默；页面心跳不是模型活动，也不自动判失败。</li><li>CLI退出后运行时长冻结，宿主可能继续校验。最终是否成功只看权威状态，不看最后一行自称“完成”。</li><li>向上滚动会暂停跟随；点“跟随最新”恢复。只保留有界尾部，不是完整逐字录像。</li><li>旧方式启动的任务不会因刷新升级成流式，不为日志重启当前任务。新版功能只对以后安全启动的实例和新任务生效。</li></ul>
+</section>
+<section id="cost"><h2>8. 费用、暂停、终止与重试</h2><table><thead><tr><th>操作</th><th>是否调用模型／效果</th></tr></thead><tbody>
+<tr><td>打开、刷新、重开网页、看手册</td><td>不调用模型；关闭标签不停止后台。</td></tr><tr><td>重新检测／准备浏览器</td><td>不调用模型；检测可能涉及CLI登录状态网络，下载会访问固定官方源。</td></tr><tr><td>生成设计、拆分、局部重做、开始开发、测试、返修、显式重试</td><td>会使用使用者自己的模型配置，可能计费。失败不会自动重试计费。</td></tr><tr><td>暂停调度</td><td>当前原子阶段继续，结束后不派下一项；不是冻结正在运行的CLI。暂停状态不能直接退出后台。</td></tr><tr><td>终止本轮</td><td>撤销批准并请求停止进程树、排空宿主工具；停止未证明前不放行，不显示已安全停稳。</td></tr><tr><td>显式重试失败阶段</td><td>仅在输入与批准未变且已安全停止时可用；每失败阶段最多2次，不适用于未知旧租约强行恢复。</td></tr><tr><td>退出工作台</td><td>检查所有项目及执行器，存在排队、活动、暂停、停止中、未知租约或恢复待核验会拒绝；不代你终止模型。</td></tr>
+</tbody></table><p>默认单阶段20分钟、整轮120分钟、最多2轮返修，不代表费用封顶。费用只显示CLI实际报告的值；没有则未知，不是实际账单承诺。账号收费请以自己的服务商记录为准。</p>
+</section>
+<section id="data"><h2>9. 产物、数据、备份与迁移</h2><p>默认数据在解压目录下 <code>userdata/</code>。启动器选择同包数据根，不偷偷迁到开发者电脑路径。</p><pre>userdata/
+  workbench.sqlite3          项目权威状态（可能另有SQLite辅助文件）
+  projects/&lt;项目ID&gt;/
+    product/                 真实生成的HTML/CSS/JS产物
+    tests/                   测试规格
+  evidence/                  本地执行证据和原始审计
+  browser/chromium-1208/      本地准备的测试浏览器及receipt
+  distribution-consent.json 当前正文的本机同意记录（确认后才有）</pre>
+<p>另有遥测和启动诊断文件；不要把示例列表当成全部可安全公开的文件。查看生成产品可先用页面的预览／产物入口。需要带走静态站点时，在<strong>该项目完全停稳后</strong>复制其完整 <code>product/</code> 到另一个新目录；这是交付自己生成的网站，不是重新分发工作台。</p>
+<p>隔离预览可能不能使用localStorage，收藏或持久化应在普通独立浏览器环境另行核验，不能把受限预览行为当作完整浏览器测试。</p>
+<h3>备份与同一使用者移动</h3><ol><li>确认所有项目停稳，通过网页“退出工作台”，不要在后台仍写SQLite时直接压缩。</li><li>备份整个工作台和完整 <code>userdata/</code>，放到自己受控的私密位置；保留版本对应，不要只拷贝单个SQLite文件遗漏辅助数据。</li><li>同一使用者同一电脑改短路径：正常退出后移动整个目录，再双击新位置入口。不要旧目录和新目录同时开两份处理同一数据。</li><li>跨电脑恢复、跨版本自动升级和异常租约恢复尚未验收。不要把“可拷贝文件”解释成“运行状态可安全热迁移”。先保留原备份，不覆盖新旧数据根。</li></ol>
+<p class="warn">本地原始审计可能含需求、源码和工具正文。公开输出做脱敏不等于整个userdata无敏感数据。<strong>不要把运行目录压缩给别人或公开上传 evidence。</strong>Claude认证由各人原配置管理，不在包里迁移。</p>
+</section>
+<section id="troubleshooting"><h2>10. 故障处理对照表</h2><table><thead><tr><th>现象</th><th>下一步</th></tr></thead><tbody>
+<tr><td>CMD提示runtime missing／unable to load</td><td>确认从ZIP全部解压且包内python.exe／pythonw.exe都在。使用可信完整Windows x64包、短可写目录；不要只复制CMD、全局安装凑文件或关闭安全软件。</td></tr>
+<tr><td>启动后没有网页</td><td>查看原生提示；有写入权限时查看userdata/startup-error.json的固定阶段、类别、errno／winerror。可再双击一次让原拥有者重开页面；仍报错就保留诊断，勿查杀不明进程或删除锁。</td></tr>
+<tr><td>看到“模拟”或静态页面</td><td>你直接打开了index.html。关掉它，双击start-workbench.cmd；不要把演示消息当真实模型ACK。</td></tr>
+<tr><td>页面断线／按钮禁用</td><td>先看“生成设计”按钮下方的阻塞原因：未建项目、未检测、未完成条款／浏览器准备、登录未知未明确确认，或任务尚未停稳。提示不会代你同意或调用模型。裸地址在另一浏览器没有已认证会话；会话失效或标签丢失时双击原start-workbench.cmd重开，不复用／转发旧私密链接，也不为重开页面重启后台。后台任务不自动停止。</td></tr>
+<tr><td>浏览器TLS／证书失败</td><td>检查本机时间、网络和证书及已有网络设置。无法从此提示判断哪一跳中断。处理后明确重试；不要关闭TLS、换不明镜像或修改SHA256。</td></tr>
+<tr><td>浏览器超时／网络失败／HTTP拒绝</td><td>检查DNS、网络连通和已有访问限制；失败不会自动重试。不必反复刷新；确认原因处理后再显式准备。</td></tr>
+<tr><td>工作台目录过深／path_too_long</td><td>等失败结束，通过网页正常退出，将整个工作台移到更短的本地可写目录再启动。建议workbench完整路径不超过80字符，不修改注册表或系统长路径。</td></tr>
+<tr><td>磁盘空间不足／文件访问拒绝</td><td>释放空间、检查当前用户目录权限和文件占用。不要以管理员强开替代检查，不关闭安全产品以求通过。</td></tr>
+<tr><td>归档校验／解压／浏览器自检失败</td><td>保持固定来源和摘要；保留失败阶段。已核验内容也可能因系统或目录问题失败，不能手工把未校验exe放进浏览器目录凑ready。</td></tr>
+<tr><td>已有浏览器校验失败／未知目录不覆盖</td><td>不会自动覆盖。正常退出，保留现有目录及项目备份；在另一个新短目录解压干净包重新准备，不删除整个userdata来绕门禁。</td></tr>
+<tr><td>Claude缺失／版本不兼容／未登录</td><td>按第4节自己安装、更新、登录，再重检。确认命令可用不等于模型有额度；未知状态不自动伪报已登录。</td></tr>
+<tr><td>上传被拒绝／按钮暂时锁定</td><td>使用UTF-8 .md/.txt，≤256KiB，检查非空与内容格式；读取期间等待结束。失败会保留旧文档和批准，不删旧项目重来。</td></tr>
+<tr><td>版本冲突／下游要求重审</td><td>重读权威状态，核对当前任务及文档版本，再做人工判断。不要把旧批准套到新内容。</td></tr>
+<tr><td>协议／模型失败，状态blocked</td><td>保留证据，不降级模拟；已安全停止、输入及批准未变时，按页面显式重试并自行确认费用。未知租约不能靠重试强开。</td></tr>
+<tr><td>暂停后不能退出</td><td>暂停只阻止下一阶段，当前阶段仍可能运行。按需要恢复或明确终止本轮，等所有项目真实停稳后退出。</td></tr>
+<tr><td>异常退出／leaseUnknown／recoveryRequired</td><td>停止自动推进是预期保护。不要删锁、手改SQLite、伪造停止证明或强行恢复；保留数据，由维护者分析。自动异常恢复不在本版承诺内。</td></tr>
+</tbody></table>
+<h3>求助时只发这些</h3><p>版本或ZIP摘要、Windows版本／架构、做了哪一步、可见错误、startup-error.json里的固定 <code>code/stage/category/errno/winerror</code>；必要时截图先遮掉需求和项目内容。不要发含fragment的页面URL、ready-file、认证配置、密码、完整userdata或原始进程输出。</p>
+<p>本次已复现并修复并发启动时空锁文件写入竞争，确定性回归及100组双进程实际启动通过，仍保持单实例保护；这不代表所有系统及异常恢复均已验收。遇到启动错误应保留本次固定诊断，不要无限重开实例来填绿。</p>
+</section>
+<section id="handoff"><h2>11. 交给其他人、更新与卸载</h2><h3>交给新使用者</h3><ol><li>发送<strong>原始干净ZIP、对应SHA256和本手册</strong>，不要从自己的userdata运行目录重新压缩。</li><li>告知接收者：需要自己的Claude Code和账号；浏览器首次确认下载；这是功能预览，有未验项，不承诺所有电脑开箱即用。</li><li>接收者完整解压到短路径，自己阅读条款、安装登录、下载和检测；发送者不能预先代同意或复制账号。</li><li>先按第12节用非敏感小项目检查，再决定是否承担真实模型费用。</li></ol>
+<h3>更新</h3><p>无自动更新。先正常退出并备份旧版本；新版解压到新空目录，不覆盖旧vendor、portable.json和userdata，不把新旧文件混合。跨版本数据迁移未验收，先保留旧版独立可回退的备份。更新后旧attempt不会变成实时流式任务。</p>
+<h3>卸载</h3><p>先在页面正常退出，再按需私密备份产物和userdata。确认不再需要后，可自行删除这份解压目录；工作台不安装系统服务／自启，不修改全局PATH或MCP。你另行安装的Claude Code／Git及其账号配置不随工作台删除，也不应由工作台清理。</p>
+<p class="muted">既有第三方通知保留，本轮按需求不开展许可证完整性审阅；此手册和功能ZIP不提供法律再分发批准。不要把“技术上可拷贝”写成“法律义务已审核通过”。</p>
+</section>
+<section id="checklist"><h2>12. 首次使用验收清单</h2><p>用本清单记录你自己这台电脑的实际结果；它不是本版已执行的验收声明。</p><ul>
+<li>□ 收到完整ZIP，SHA256与可信发送者一致；解压短路径，不混入userdata。</li><li>□ 双击CMD打开HTTP真实工作台；重复双击能重开同一实例。</li><li>□ 不确认时不检测／下载／模型；确认只由自己完成。</li><li>□ 自己的Claude Code安装登录完成；浏览器明确确认后准备成功；重新检测能看懂各项状态。</li><li>□ 明确接受费用后，用小项目生成设计，下载修改并上传，按上传版拆分。</li><li>□ 驳回一项后局部重做，无关批准保留；下游必要时重审；全部通过仍需手动开始。</li><li>□ 真实开发、独立测试、权威证据与公开输出可区分；最终由自己验收。</li><li>□ 已找到自己的product目录；没有把私密审计当公开日志。</li><li>□ 网页正常退出，随后可重新双击打开；退出前不移动目录。</li></ul>
+<p class="warn"><strong>已知未验范围：</strong>干净Windows、最新原生流式兼容、完整三Claude真实闭环复验、内置工具拒绝对抗、所有自然语言AC、正常前台Ctrl+C及异常恢复尚未验收。cwd、受控MCP、串行调度、Job Object不是完整OS文件系统／网络沙箱；不要用于敏感业务或强不可信代码的隔离承诺。</p>
+</section>
+<footer>本手册无需后台、脚本、网络字体或外部资源即可阅读；外部官方链接由你自行打开。可用浏览器“打印 → 保存为PDF”另存。</footer>
+</main></body></html>

@@ -541,3 +541,90 @@ fn not_ready_disables_test_selector_without_dispatch() {
     assert_eq!(app.pending_count(), 0);
     assert!(host_project_runs(&state, "test").is_empty(), "disabled selector must not dispatch a project test");
 }
+
+// The wizard progress rail is the productization P1 contract: six fixed steps,
+// per-phase done/current/todo markers rendered from the persisted phase, and a
+// "现在做" action line that always names the next physical control. The rail is
+// display-only — it must not gate or duplicate any real action.
+fn rail_marker(app: &mut desktop::Workbench, ctx: &egui::Context, step: &str) -> (bool, bool, bool) {
+    let output = frame(app, ctx, vec![]);
+    let all = texts(&output).into_iter().map(|(text, _)| text).collect::<Vec<_>>();
+    let _head = all.iter().position(|text| text == "进度").expect("rail heading must render");
+    // Rail rows sit right below the heading; collect the marker+step rows in order.
+    let mut seen = std::collections::BTreeMap::new();
+    for text in &all {
+        if let Some((marker, name)) = text.split_once(' ') {
+            if ["✓", "▶", "○"].contains(&marker) { seen.insert(name.to_string(), marker.to_string()); }
+        }
+    }
+    let marker = seen.get(step).map(String::as_str).unwrap_or_else(|| panic!("rail step must render: {step} in {seen:?}"));
+    (marker == "✓", marker == "▶", marker == "○")
+}
+
+#[test]
+fn wizard_rail_marks_progress_from_persisted_phase() {
+    let temp = tempfile::tempdir().unwrap();
+    let (state, id) = redo_fixture(temp.path());
+    let (mut app, ctx) = app(&state);
+    wait(&mut app, |snapshot| snapshot.projects.iter().any(|project| project.id == id && project.phase == "task_review"));
+
+    // task_review: steps 1-2 done, step 3 current, later steps todo.
+    assert_eq!(rail_marker(&mut app, &ctx, "①新建"), (true, false, false));
+    assert_eq!(rail_marker(&mut app, &ctx, "②定稿设计"), (true, false, false));
+    assert_eq!(rail_marker(&mut app, &ctx, "③任务审核"), (false, true, false));
+    assert_eq!(rail_marker(&mut app, &ctx, "④开发"), (false, false, true));
+    assert_eq!(rail_marker(&mut app, &ctx, "⑤测试与返修"), (false, false, true));
+    assert_eq!(rail_marker(&mut app, &ctx, "⑥人工验收"), (false, false, true));
+
+    let output = frame(&mut app, &ctx, vec![]);
+    let all = texts(&output).into_iter().map(|(text, _)| text).collect::<Vec<_>>();
+    assert!(all.iter().any(|text| text.starts_with("现在做：")), "current-step action line must render: {all:?}");
+}
+
+#[test]
+fn wizard_rail_reflects_test_failed_and_accepted_phases() {
+    let temp = tempfile::tempdir().unwrap();
+    let (state, id) = test_failed_fixture_with_endpoint(temp.path(), REASON_ENDPOINT, "gui-actions-w2");
+    let (mut app, ctx) = app(&state);
+    wait(&mut app, |snapshot| snapshot.projects.iter().any(|project| project.id == id && project.phase == "test_failed"));
+    assert_eq!(rail_marker(&mut app, &ctx, "④开发"), (true, false, false));
+    assert_eq!(rail_marker(&mut app, &ctx, "⑤测试与返修"), (false, true, false));
+    assert_eq!(rail_marker(&mut app, &ctx, "⑥人工验收"), (false, false, true));
+    drop(app);
+
+    let temp2 = tempfile::tempdir().unwrap();
+    let (state2, id2) = acceptance_then_accepted_state(temp2.path());
+    let (mut rail_app, rail_ctx) = {
+        let ctx = egui::Context::default();
+        let started = desktop::Workbench::new(
+            ServiceOptions { mode: Mode::Real, state_dir: state2.clone(), worker_exe: env!("CARGO_BIN_EXE_aw-cli").into(), gateway_key: None, gateway_model_token: None },
+            &ctx,
+        ).unwrap();
+        ctx.style_mut_of(egui::Theme::Light, |style| style.animation_time = 0.0);
+        (started, ctx)
+    };
+    wait(&mut rail_app, |snapshot| snapshot.projects.iter().any(|project| project.id == id2 && project.phase == "accepted"));
+    assert_eq!(rail_marker(&mut rail_app, &rail_ctx, "⑥人工验收"), (true, false, false));
+}
+
+/// Drive a real acceptance click through the GUI to land the persisted accepted phase.
+fn acceptance_then_accepted_state(root: &Path) -> (PathBuf, String) {
+    let state = root.join("workflow");
+    let (_id, mut row) = base_row(&state, "GUI Rail accepted fixture");
+    let config = config_fixture(root, REASON_ENDPOINT, "gui-actions-w2");
+    row["phase"] = json!("accepted");
+    row["document"] = confirmed_document();
+    row["tasks"] = json!([
+        {"id":"inventory","title":"库存扣减","description":"订单原子扣减库存","acceptance":"库存不为负","review":"approved","reason":null},
+        {"id":"refund","title":"退款补偿","description":"退款仅恢复一次库存","acceptance":"重复退款幂等","review":"approved","reason":null}
+    ]);
+    row["actions"] = json!([
+        action("develop-action", "develop", "succeeded", "synthetic fixture artifact"),
+        action("test-action", "test", "succeeded", "synthetic passing test report"),
+        action("accept-action", "accept", "succeeded", "manual acceptance"),
+    ]);
+    row["blockers"] = json!([]);
+    let id = put_project(&state, row, &config, &[]);
+    put_setting(&state, &format!("tasks:{id}"), task_inputs());
+    (state, id)
+}

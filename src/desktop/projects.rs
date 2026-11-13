@@ -38,6 +38,50 @@ fn action_state_label(state: &str) -> &str {
     }
 }
 
+/// Wizard rail steps in fixed order. (marker, short name); markers are derived
+/// from the persisted phase only — the rail is display-only and never gates.
+const RAIL_STEPS: [&str; 6] = ["①新建", "②定稿设计", "③任务审核", "④开发", "⑤测试与返修", "⑥人工验收"];
+/// Map each persisted phase to its rail index (0-based) and completion state.
+/// Semantics: ② is done once the document is confirmed (split cannot happen
+/// otherwise), ③ is done when all tasks are approved, ④ when development
+/// finishes, ⑤ when tests pass without repair, ⑥ on manual acceptance.
+fn phase_rail(phase: &str) -> (usize, [bool; 6]) {
+    let (current, done_count) = match phase {
+        "needs_document" | "document_review" => (0, 0),
+        "confirmed" | "splitting" | "task_review" => (2, 2),
+        "ready" | "developing" => (3, 3),
+        "developed" => (3, 4),
+        // Redo reopens task review (fires from task_review|ready): step 3 is
+        // current again, not done. Repair loops inside step 5 after a failed test.
+        "redoing" => (2, 2),
+        "testing" | "test_failed" | "repairing" => (4, 4),
+        "awaiting_acceptance" => (5, 5),
+        "accepted" => (5, 6),
+        _ => (0, 0),
+    };
+    let mut done = [false; 6];
+    for slot in done.iter_mut().take(done_count) { *slot = true; }
+    (current, done)
+}
+/// One-line guidance naming the physical control for the current step.
+fn rail_now(phase: &str) -> &'static str {
+    match phase {
+        "needs_document" => "现在做：在“定稿设计文档”区选择并导入 .md/.txt，再点“导入设计文档”",
+        "document_review" => "现在做：核对预览与 SHA-256 后点“确认此上传版本”",
+        "confirmed" | "splitting" => "现在做：点“按已确认上传版拆分任务”",
+        "task_review" => "现在做：逐项“审核通过”，或填原因“驳回此项”",
+        "ready" => "现在做：全部通过后点“手动开始开发”",
+        "developing" => "现在做：等待开发执行记录回传（不自动进入下一步）",
+        "developed" => "现在做：点“运行独立测试”",
+        "testing" => "现在做：等待独立测试结果",
+        "test_failed" => "现在做：填“返修原因”后点“提交返修”，返修后复测",
+        "repairing" | "redoing" => "现在做：等待返修/重做执行记录",
+        "awaiting_acceptance" => "现在做：检查结果后点“人工验收通过”",
+        "accepted" => "项目已完成验收；如需变更请新建项目",
+        _ => "现在做：查看下方阶段说明",
+    }
+}
+
 use agentranch::core::service::{AppSnapshot, ProjectSnapshot, UiCommand};
 use eframe::egui::{self, RichText};
 use super::{action::action, pending::Pending};
@@ -126,6 +170,21 @@ impl Projects {
         ui.separator();
         ui.heading(&project.name);
         ui.label(format!("当前阶段：{}", phase_label(&project.phase)));
+        // Wizard progress rail: display-only projection of the persisted phase.
+        // Never gates or duplicates an action — the real controls below stay
+        // authoritative (and gated buttons keep rendering disabled).
+        let (current_step, done) = phase_rail(&project.phase);
+        ui.group(|ui| {
+            ui.strong("进度");
+            ui.horizontal_wrapped(|ui| {
+                for (index, step) in RAIL_STEPS.iter().enumerate() {
+                    if index > 0 { ui.label("→"); }
+                    let marker = if done[index] { "✓" } else if index == current_step { "▶" } else { "○" };
+                    ui.label(format!("{marker} {step}"));
+                }
+            });
+            ui.label(rail_now(&project.phase));
+        });
         egui::CollapsingHeader::new("项目与产物目录").id_salt(("project-directories", id)).show(ui, |ui| {
             ui.add(egui::Label::new(format!("项目目录：{}", if project.project_path.is_empty() { "尚未准备目录" } else { &project.project_path })).wrap());
             ui.add(egui::Label::new(format!("产物目录：{}", if project.product_path.is_empty() { "尚未准备目录" } else { &project.product_path })).wrap());

@@ -145,7 +145,17 @@ fn pending_exit_rejection_click_persists_the_entered_reason() {
     let (mut app, ctx, id) = recovered_pending_exit(t.path());
     let task_title = "库存扣减 · pending";
     let label = seek(&mut app, &ctx, "驳回原因", Some(task_title));
-    let input_pos = egui::pos2(label.center().x, label.bottom() + 20.);
+    // seek() parks the anchor at the scroll viewport's bottom edge; the fixed
+    // +20 click offset can land in the widget below the task group once the
+    // taller wizard rail pushes the layout (same lesson as the repair editor).
+    // Scroll the reason field fully into view, then re-locate it before clicking.
+    scroll(&mut app, &ctx, -160.);
+    let output = frame(&mut app, &ctx, vec![]);
+    let reason_label = texts(&output).into_iter()
+        .find(|(text, _)| text == "驳回原因")
+        .map(|(_, rect)| rect)
+        .expect("reason label must stay visible after the settling scroll");
+    let input_pos = egui::pos2(reason_label.center().x, reason_label.bottom() + 20.);
     click(&mut app, &ctx, input_pos);
     frame(&mut app, &ctx, vec![egui::Event::Text("需要补充重复回调验收".into())]);
     assert!(app.snapshot().projects[0].tasks[0].reason.is_none());

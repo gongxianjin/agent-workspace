@@ -1,111 +1,149 @@
-# 接力 · 三 Claude 本机协作工作台
+# AO + Reason Workbench for Windows
 
-## 1. 需求
+这是一个原生 Rust + egui Windows 工作台；当前源码定义两个 Windows 二进制入口，分别用于 GUI 和 CLI/受管 worker。它们不是旧版 Python/Web 入口的别名，也不会自动安装服务、修改 PATH 或迁移旧账本。
 
-在一个网页里完成：
+## 先看懂源码定义的两个 Windows 二进制入口
 
-**填写需求 → AI生成设计 → 下载人工修改 → 上传确认版 → 按上传版拆分 → 逐项审核／驳回局部重做 → 全部通过后手动开工 → 开发 → 独立测试／显式返修复测 → 人工验收。**
+| 源码入口 | 用途 | 形成同版 Windows 构建并通过验收后的使用方式 |
+| --- | --- | --- |
+| `ao-reason-workbench`（GUI 二进制） | 管理应用和项目工作流的 GUI；源码入口用于在窗口中查看状态、项目阶段、阻塞原因和操作回执。 | 只有同版 Windows 构建与配套 worker 通过运行验收后，才可双击对应的 `ao-reason-workbench.exe`；也可从终端传入下方 GUI 参数 |
+| `aw-cli`（CLI/受管 worker 二进制） | 无界面 CLI/受管 worker 入口，适合脚本、诊断、MCP/stdin 场景；它不是 GUI 的替代启动器。 | 只有同版 Windows 构建通过验收后，才可使用对应的 `aw-cli.exe` 并显式提供子命令 |
 
-HTTP真实模式使用三个独立原生Claude Code进程，分别负责架构、开发、测试；reason-network传递TASK → 模型显式ACK → RESULT。阶段串行、共享受管理项目目录，不是本聊天子Agent，不要求三个长期终端，不使用Go、Electron或worktree。
+只有在同版 Windows 构建、配对和运行验收完成后，两个对应的 exe 才构成可交付产品入口。届时它们必须保持在同一目录；GUI 启动时会按自身目录查找同版 `aw-cli.exe`，缺失或版本不一致时不要用其他目录的 exe 代替。
 
-只支持本服务新建的受管理项目，产品限无需安装依赖或构建的静态HTML/CSS/JS。网页不能指定任意已有业务目录、Shell、exe或argv。
+## GUI：真正支持的启动方式
 
-**交付定位：Windows x64功能预览，不是正式稳定版。** 已提供独立使用手册及快速说明，便携构建包含它们。包内验证、ZIP及摘要的实际结果以交付目录的核验记录为准，不把源码测试通过等同于已交付ZIP或所有电脑可用。
+在解压后的产品目录中打开 PowerShell 或命令提示符：
 
-## 2. 行动
-
-### 2.1 第一次使用，按这里操作
-
-详细说明请双击 [USER-GUIDE.html](USER-GUIDE.html)，无需后台或联网即可阅读；快速入口见 [START-HERE.txt](START-HERE.txt)，版本边界见 [PREVIEW-STATUS.txt](PREVIEW-STATUS.txt)。
-
-1. 获取完整Windows x64便携ZIP和对应SHA256，不要只复制源码、HTML或旧INTERNAL-ONLY候选。
-2. 全部解压到本地、当前用户可写、短路径，建议整个workbench路径≤80字符，例如 `D:\Apps\workbench`。不要放Program Files、网络盘、同步盘或多层临时目录。
-3. 双击 `start-workbench.cmd`。包内Python启动本机后台并自动打开网页，可能短暂闪出命令窗口，不承诺零黑窗。
-4. 自己阅读并决定是否同意页面显示的当前随包条件。不同意仍可退出；确认不会自动检测、下载或调用模型。
-5. 按[官方Windows安装文档](https://code.claude.com/docs/en/setup)自己安装原生Claude Code和所需Git for Windows，再自己运行 `claude auth login`。不向工作台填密钥，不复制发送者账号。
-6. 网页点击“确认并准备测试浏览器”，再次明确确认后才从固定官方源下载约173MiB。完成后点击“重新检测（不调用模型）”。
-7. 状态允许后开始自己的小型非敏感项目。生成、拆分、开发、测试、返修、显式重试均可能计费。
-8. 等所有项目停稳，点网页“退出工作台”。关闭浏览器标签不退出后台。重复双击同一CMD只让原拥有者重开页面，不重启任务。
-
-完整包自带Python3.14.3、Node24.14.0、Playwright/core1.58.2、reason-network0.10.8；不含浏览器二进制、Claude Code、账号、userdata、历史项目或已同意记录。首次准备固定Chrome for Testing145.0.7632.6／revision1208，依次核完整大小、SHA256、安全解压、实际浏览器健康和逐文件receipt；未知已有目录不覆盖。
-
-包内检测到portable.json或vendor即强制校验，不回退开发者全局依赖。下载失败不自动重试，刷新不重新下载；不要关闭TLS、改摘要或换不明镜像。Windows过长目标在写入前受控拒绝，显示path_too_long；正常退出后整包移到短目录，不修改注册表。
-
-### 2.2 检测通过不等于模型已接通
-
-客户端存在／必需参数、登录、依赖健康、真实模型验证分别显示。固定version／help／auth status检测不调用模型；每条最多10秒、总输出128KiB，另做真实本地浏览器自检。auth status可能涉及网络，未知格式保持未知，不靠exit0猜已登录。
-
-明确未登录会阻止执行。必需参数和依赖通过、登录未知时，可自行确认“使用已有本机配置继续（接入未验证）”；不会自动付费探测，下次重检撤销此确认。刷新只读缓存，不替换正在运行任务的客户端快照。
-
-### 2.3 “生成设计文档”按钮不可用时
-
-按钮下方显示当前阻塞原因和下一步，不需要猜测是否点击成功。请先新建或选择受管理项目；接入未检测时，先在页面上方点击“重新检测（不调用模型）”。便携包还需要使用者自己决定是否同意当前条款、明确准备测试浏览器。登录未知且必需参数及本地依赖通过时，可自行选择“使用已有本机配置继续（接入未验证）”；工作台不自动确认，也不自动付费探测。
-
-不要只把 `http://127.0.0.1:端口/` 输入另一个浏览器或新会话：裸地址没有启动器的一次性认证信息，页面能显示不等于已连接。请双击原 `start-workbench.cmd` 重新打开已认证页面，不用重启后台。任务／上传进行中或旧租约未知时仍会锁定，提示不取消这些保护。按钮启用只表示允许提交，不代表模型已成功执行。
-
-### 2.4 审核、运行与实时输出
-
-- 先生成设计，下载人工修改，再上传严格UTF-8的.md/.txt（≤256KiB），核对U版本与摘要。只有上传版可作为拆分依据。
-- 每项单独通过或填写原因驳回；局部重做保留无关内容、版本和批准，受影响下游显式重审。
-- 全部通过只解锁手动开始，不自动开工。开发、独立测试与宿主可信复跑串行执行。
-- 首次实际浏览器检查返回测试员前冻结测试规格；失败由使用者显式返修，最多两轮，再按冻结规格复测。实际测试通过仍等待人工验收。
-- “Claude实时输出”显示实际岗位、attempt、PID、公开assistant文本及宿主工具起止；不显示思维链、原始工具参数、system/user或stderr。
-- 排队／准备与CLI计时分开；超时剩余来自实际wait deadline，不是预计完成时间。30秒静默不自动判失败；没有公开文本不伪造进度。
-- 向上阅读暂停跟随，点“跟随最新”恢复；只保留有界尾部。旧attempt不会因刷新热转流式，不为日志重启当前实例。
-
-发送成功≠模型已读，ACK≠完成，RESULT或exit0≠测试通过，实测通过≠人工验收。日志没有派工或完成权限。
-
-### 2.5 数据、故障与交接
-
-数据默认在同包userdata，产物在 `userdata/projects/<项目ID>/product/`。原始evidence可能含需求、源码、工具正文及私密数据；公开输出脱敏不等于整个运行目录可以公开。
-
-浏览器检查证据采用 `userdata/evidence/<检查ID>/` 的短目录布局，原有证据索引继续可读。写快照前按Windows UTF-16长度检查所有目标；仍过长时显示 `path_too_long`，不启动浏览器、不修改系统长路径设置。检查未生成证据时保留原始失败原因，不把路径／磁盘错误统一显示成“Unknown evidence or changed product/test bytes”；失败不会因此变为通过，也不会自动重试模型。
-
-移动／备份前须通过网页正常退出，完整保留数据及SQLite辅助文件。不要旧、新目录同时处理同一数据。跨电脑、跨版本迁移和异常租约自动恢复未验收；不要删锁、手改数据库或提权强开。
-
-遇到失败，先看手册故障表；求助只发版本／ZIP摘要、系统、步骤、固定stage／category／errno／winerror，不发私密fragment URL、ready-file、认证或整个userdata。暂停调度不是冻结CLI；退出检查所有项目，排队、活动、暂停、停止中、未知租约或恢复待核验会被拒绝。
-
-给别人只发原始干净ZIP、对应SHA256与手册，不压缩自己使用后的运行目录。不自动更新，新版解压新空目录，不混用vendor／清单／userdata。
-
-### 2.6 源码与测试入口（不是普通使用者安装步骤）
-
-源码模式依赖本机已有Python／Node／Playwright及同级reason-network；仅复制本目录不能代替完整便携ZIP。直接双击index.html是明确标注的file://历史模拟，不调用真实AI；demo是预制资源。HTTP失败不降级模拟。
-
-免费开发回归：
-
-```bash
-python -I -X utf8 -m unittest discover -s tests/p1 -p 'test_*.py' -v
-python -I -X utf8 tests/p1/run_browser.py
-# 以下只限源码：真实本机固定非模型检测／接入确认；不提交生成、不接受发行条款。
-python -I -X utf8 tests/p1/run_onboarding_browser.py
-node --test tests/model.test.cjs
-python -I -X utf8 tests/run_static_browser.py
+```powershell
+.\ao-reason-workbench.exe
+.\ao-reason-workbench.exe --real
+.\ao-reason-workbench.exe --state-dir "D:\ao-state\workbench"
+.\ao-reason-workbench.exe --real --state-dir "D:\ao-state\workbench-real"
 ```
 
-这些测试只在开发／验证副本提供，不随干净用户包。模型与收费边界是明确fixture，本机进程、HTTP与Chromium真实执行。`live_probe.py`／`run_live_e2e.py`会真实计费，不能自动补跑。带参数CMD的前台诊断与日常后台启动不同，正常Ctrl+C尚未专项验收。
+不带 `--real` 时是 `local` 模式；带 `--real` 时是 `real` 模式。`--state-dir` 必须后跟非空路径，不能重复；未知参数会让 GUI 显示启动错误，而不是静默忽略。
 
-## 3. 结果与边界
+Windows 默认状态根目录来自 `%LOCALAPPDATA%`，具体目录为：
 
-2026-10-23本次交付修复：浏览器证据短路径／UTF-16写前检查／原始错误保留，以及并发启动空锁文件初始化竞争。并发失败已抓到 `RootLock` 写入刷新时的 `PermissionError(errno=13)`；删除锁前无必要写入，仍用Windows排他字节锁，未放宽单实例保护。确定性回归先失败后通过；修复后100组双进程实际启动均只有一个拥有者、另一进程正常重开、正常退出且整树停稳。完整源码免费回归171/171（176.771秒）、HTTP真实Chromium17/17、状态模型31/31、历史静态Chromium17/17。最终新ZIP及包内验证以新交付目录记录为准；干净Windows和修复后的真实模型闭环仍未完成，不能据此称为稳定版。
+- local：`%LOCALAPPDATA%\ao-reason-workbench\local`
+- real：`%LOCALAPPDATA%\ao-reason-workbench\real`
 
-以下为此前验证与历史失败，不替代本次包内核验：
+显式 `--state-dir` 会覆盖默认目录。local 和 real 使用不同的状态身份；不要把一个模式的账本复用给另一个模式，也不要为了绕过错误删除账本。状态目录包含 SQLite/锁/身份文件，建议先备份再处理故障。
 
-2026-10-23此前源码完整免费回归已实际运行并全文读取：后端161/161（204.256秒）、真实HTTP页面17/17（exit0、整树停稳）、状态模型31/31、静态Chromium17/17。随后旧预览包HTTP断言虽通过，却暴露遥测响应断连后重复写500的问题；现已用真实TCP reset行为测试先复现FAIL，再仅在响应写入边界处理BrokenPipe／ConnectionAborted／ConnectionReset并关闭连接，HTTP专项24/24通过，存储异常仍返回500。不能把修复前包的通过结果移用到新包；修复后的完整源码／包内回归及最终ZIP结果另见交付目录的交付说明与核验记录。手册1440/375px离线导航、无页面错误／外部资源检查已通过，最终交付还会检查包内版本。
+GUI 中的“本地诊断”只打开本地 Rust 固定 fixture。它明确标记为模拟 AO/Reason/模型，不代表外部服务已连接。
 
-本机新短目录的生产官方下载完整链路已通过：181196793字节、固定SHA256、安全解压、真实浏览器健康、verifiedReceipt=true，317.409秒，一次明确尝试、无自动重试，无模型调用、未重启用户服务、未代接受真实条款。不能扩大成任意网络或干净系统保证。
+## CLI：真正支持的子命令
 
-历史失败保留：两次TLS握手失败未归因；后来完整传输曾因269字符深目标解压失败，同归档148字符目标成功。新增写入前长度检查和固定安全提示，browser专项13/13；手册入包测试RED→GREEN，包装专项12/12。后端159项首轮crashbeat测试同步失败，只修非空心跳前置条件，未改生产Job停止证明；专项11/11及新161项完整回归通过。HTTP初轮连接失败及并发启动exit1作为历史证据保留；并发竞争现已复现定位并修复，见本节本次记录，不以偶然通过代替根因验证。
+先查看内置帮助：
 
-仍未验收：
+```powershell
+.\aw-cli.exe --help
+```
 
-- 干净Windows10/11 x64，空PATH测试不能代替。
-- 最新原生Claude stream-json实际付费兼容，synthetic协议fixtures不能代替。
-- 完整三Claude真实闭环复验：旧E2E最终blocked，测试员18/18、340断言、exit0后修改测试报告摘要，主控正确拒绝；免费冻结边界测试不是完整复验。
-- 内置工具拒绝对抗、全部自然语言AC、正常前台Ctrl+C及异常恢复。
-- 本轮按用户要求不开展许可证完整性审阅，保留已有原始通知，不提供法律再分发结论或公开发布批准。
+当前源码提供这些入口：
 
-cwd、提示词、串行租约、受控MCP和Windows Job Object不是完整OS文件系统／网络沙箱，不对敏感业务或强不可信代码作隔离承诺。
+```powershell
+.\aw-cli.exe check --config .\config.json
+.\aw-cli.exe mcp --config .\config.json
+.\aw-cli.exe local-check --state-dir "$env:LOCALAPPDATA\ao-reason-workbench\local"
+.\aw-cli.exe runner --config .\config.json --once
+.\aw-cli.exe runner --config .\config.json --stop-on-stdin
+.\aw-cli.exe controller --config .\config.json --once
+```
 
-完整历史报告、原失败与裁决仅在源码开发目录dist/p1、dist/p2、dist/p3保留，不随用户包；旧f448内部候选和a44时点快照不就地改写，也不冒充本次交付。曾有一次整体独立审查（Critical0、Important0、3个Minor延期：重开错误归因、特定异步启动无可见反馈、源码缺Node提示）；它不覆盖后来新增代码或本次文档打包。
+- `check` 只校验配置并输出 `external_readiness: not_probed`；它不会连接外部 AO/Reason。
+- `local-check` 运行本地固定诊断，输出中会标明 `simulated: true`；它不是远程执行证明。
+- `mcp` 使用 stdin/stdout 协议；不要把普通日志或交互文本混入协议流。
+- `runner`、`controller` 需要受信任配置。`--once` 与 `--stop-on-stdin` 不能同时使用。
+- real 模式不会自动回退到 local fixture。配置存在不等于外部执行链已就绪。
 
-本次不重启用户现有服务，不动F1／demo原字节／reason-collab／业务／原Git删除或data，不创建worktree、不commit/push，不改全局MCP／PATH／注册表／自启／认证。用户另行授权一次最小真实模型闭环，无自动付费重试；授权不代替使用者阅读并同意真实随包条件，也不代替最终人工验收。
+CLI 返回非零退出码时应保留 stdout/stderr 和状态目录，不要通过重跑或删除账本把 `UNKNOWN` 当成成功。
+
+## 新手操作顺序与当前阶段限制
+
+以下是界面中的显式阶段顺序，不表示整条产品链已实现或验收。当前已由本地 headless Rust/SQLite 回归覆盖的范围包括项目创建/导入/确认、任务审核与阶段门槛，以及通过真实 GUI pointer action 触发的 Test、Repair、Accept、Redo 请求和其持久化门控；测试使用 synthetic ingress/fixture 数据，验证的是本地请求、状态、依赖闭包、ExitProof 与 managed-artifact 状态边界。外部 AO/Reason/模型执行、真实项目开发、远程退出/取消、Windows native window 和已验收产品包仍未建立，不会用固定样例伪装完成。`Start/Test/Repair/Accept` 作为门控入口可见，不等于现在能完成全流程。
+
+1. 双击 `ao-reason-workbench.exe`，确认两个 exe 在同一目录。
+2. 创建项目。
+3. 导入已经定稿的 UTF-8 `.md` 或 `.txt` 设计文档。文件上限为 256 KiB；导入不会重新生成设计，也不会自动调用模型。
+4. 检查显示的上传版本 `U`、文件名、完整文本和小写 SHA-256。只有在确认内容确实是要执行的文档后，点击“确认此上传版本”。文档版本或哈希过期时，确认会被拒绝。
+5. 按已确认的上传版拆分任务。
+6. 逐项检查标题、描述、验收标准、依赖和公开输出。每项都要人工点击“审核通过”；驳回必须提供原因，可对驳回项单独“仅重做”。
+7. 所有任务审核通过后，点击“手动开始开发”。解锁按钮不等于开发已完成，也不会自动开始。
+8. 开发阶段检查会话、阶段、公开输出和阻塞原因。
+9. 点击“运行独立测试”。`Test` 只表示独立测试动作或结果，不等于人工验收。
+10. 测试失败时填写明确返修原因，点击“提交返修”，完成返修后再次测试。
+11. 只有在测试通过且你检查了证据后，才点击“人工验收通过”。`Accept` 是明确的人工作业，不会因任务审核通过或 Test 按钮被点击而自动发生。
+
+对于审批型任务，界面会展示待审批请求和可用决定。决定按钮只提交受范围、会话、attempt、generation 和有效期约束的请求；“已接受请求”或 `queued` 不等于远端已经执行。
+
+## local 与 real 的区别
+
+### local
+
+local 是随 Rust 核心提供的受控本地 fixture，用于检查状态目录、SQLite、受管子进程、固定模板和界面回执。它可以帮助新手熟悉界面，但不代表真实 AO、Reason 或模型运行。
+
+### real
+
+real 是显式选择的真实模式。当前产品不会因为 real 配置缺失而静默使用 local。需要由受信任配置提供 AO/Reason/节点等依赖，并由独立的实际运行、退出证据和产品验收证明链路可用。仅有配置文件、`check` 输出、ready/probe、GUI 状态或成功提交按钮都不足以声称真实执行完成。
+
+本版本文档不声称已经验证外部 AO/Reason 连接、真实模型调用、跨机网络、远程进程退出、Windows 原生窗口验收或 Linux 构建。
+
+## 操作语义和安全边界
+
+- “查看状态”“查看报告”“刷新审批”是读取或请求状态；不替代独立证据。
+- 关闭 GUI 会停止本地工作台并等待本地后台收尾，不代表远端任务已取消。
+- 不要手工修改 SQLite、身份文件、上传文档哈希或审批字段来绕过阶段门槛。
+- 不要把历史报告、旧 attempt、旧 session 或旧审批决定当作当前执行证明。
+- 未配置、未实现、执行失败和证据尚未建立是不同状态；按界面给出的阻塞原因处理。
+
+## 常见错误
+
+### 双击后窗口提示找不到 worker
+
+确认 `aw-cli.exe` 位于 `ao-reason-workbench.exe` 同一目录，并确认两者来自同一个冻结包。不要从 PATH 或其他构建目录拼接 exe。
+
+### 状态模式不匹配
+
+你可能复用了另一个模式或部署的状态目录。关闭工作台，保留原目录作为证据，使用正确的 `--state-dir`；不要删除文件强行启动。
+
+### real 模式未就绪
+
+这是预期的诚实失败路径：real 不会自动回退 local。检查受信任配置、节点准入/健康、AO 项目和 Reason 依赖，并以实际探测与退出证据为准。
+
+### Windows SmartScreen 或签名提示
+
+产品包默认未签名。SmartScreen 警告不是产品功能失败，也不代表产品已签名；本包不包含 installer 或签名声明。
+
+## Windows 开发构建：使用已安装 SQLite
+
+不再启用 `rusqlite/bundled`，也不编译 `sqlite3.c`。使用本机已安装的 x64 MinGW SQLite（当前环境 `C:\msys64\mingw64`，SQLite 3.52.0；最低 3.45.3），而不是 `sqlite3.exe` 命令行工具替代链接库：
+
+```powershell
+.\packaging\cargo-windows.cmd test --target x86_64-pc-windows-gnu --locked --offline --no-default-features
+.\packaging\cargo-windows.cmd build --target x86_64-pc-windows-gnu --locked --offline --bins
+```
+
+入口只为子进程设置 MinGW-first PATH、固定 Rust 1.99.1、`SQLITE3_INCLUDE_DIR` / `SQLITE3_LIB_DIR`、`SQLITE3_STATIC=0` 和 `SQLITE3_NO_PKG_CONFIG=1`，使用现成的 `libsqlite3.dll.a` 与 `libsqlite3-0.dll`，不修改全局环境、不下载或安装。可先设置 `MINGW_HOME` 指向同布局的已安装环境。Windows 包必须通过现有 PE import 递归收集器携带 SQLite DLL 及其实际依赖；打包成功不等于已通过搬迁运行验收。其他平台需要本地可链接的 SQLite；此处不声明 Linux 已验证。
+
+## 打包与验收边界
+
+`packaging/package_windows.py` 只负责从已经生成并经过同版身份绑定的输入构造可审计便携目录和 ZIP。它不会构建 Rust、启动 GUI、发起外部请求、签名或安装产品。
+
+正式冻结版必须使用同一 source inventory、offline Cargo metadata、build identity 和同一目录中的两个 Windows PE。build identity 机械校验 source inventory digest、target、toolchain、profile、版本及两个 exe 的字节 SHA-256；它不是独立的编译证明，也不是 native/window/GUI acceptance。
+
+打包前会检查：
+
+- `ao-reason-workbench.exe`、`aw-cli.exe` 均存在且是 PE（`MZ`）；
+- source inventory、`Cargo.toml`、`Cargo.lock`、README 和相关 source identity 没有漂移；
+- build identity 与 source digest、两个 exe 实际哈希一致；
+- PE imports 可由 Windows API set、系统 DLL 或明确 runtime 目录解析；
+- 输出目标已存在时不覆盖，而是失败并保留旧证据；
+- 生成 `PACKAGE-MANIFEST.json` 中的 payload 字节数和 SHA-256，并写入 ZIP；packaging-only 回归会独立读取 manifest、目录和 ZIP，核对 entry 集合与实际字节。
+
+失败时脚本退出码为 `2`，并尽可能在已创建的包目录保留 `PACKAGE-FAILURE.json`。成功状态 `PACKAGE_CREATED_RUNTIME_NOT_YET_VERIFIED` 只表示包装输入和文件哈希检查完成；发布前仍需要同版 Windows 原生运行、双击/CLI 验证、资源门禁和独立验收。
+
+## 当前明确未覆盖
+
+本 README 明确将以下边界标为 `NOT_RUN`：外部 AO/Reason/模型连接与真实执行、真实项目开发、远程退出/取消、Windows native window acceptance、同版双 EXE 产品包运行验收、签名/installer、Linux 构建、Stop10 及其他未实际运行的 gate。已运行的验证限于本地 headless Rust/SQLite、真实 GUI pointer action、本地 service/ledger、synthetic ingress、独立 `ExitProof` 和 managed-artifact 状态投影；这些结果不证明外部执行或真实产品包已验收。

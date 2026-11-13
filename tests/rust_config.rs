@@ -1,0 +1,11 @@
+use ao_reason_workbench::config::{Config,NodeSpec};
+use serde_json::json;
+fn config_value()->serde_json::Value{json!({"schema":"ao-reason-config/1","mode":"local","role":"controller","deployment":"local-test","state_dir":"state","nodes":[{"id":"B","address":"local-B/runner","key_file":"B.key","slots":1,"templates":["sum-native-v1"]}]})}
+#[test]
+fn runtime_node_debug_redacts_synthetic_or_real_keys(){let key="ab".repeat(32);let n=NodeSpec{id:"B".into(),address:"local-B/runner".into(),key_hex:key.clone(),slots:1,admitted:true,healthy:true,draining:false,templates:vec!["sum-native-v1".into()]};assert!(!format!("{n:?}").contains(&key));}
+#[test]
+fn trusted_config_uses_key_file_and_defaults_real_nodes_unadmitted(){let t=tempfile::tempdir().unwrap();std::fs::write(t.path().join("B.key"),"07".repeat(32)).unwrap();let cfg:Config=serde_json::from_value(config_value()).unwrap();cfg.validate().unwrap();let nodes=cfg.load_nodes(t.path()).unwrap();assert!(!nodes[0].admitted);assert!(!nodes[0].healthy);assert_eq!(nodes[0].key_hex,"07".repeat(32));assert!(!serde_json::to_string(&cfg).unwrap().contains(&"07".repeat(32)));}
+#[test]
+fn config_refuses_extra_secret_and_cross_mode_templates(){let mut v=config_value();v["nodes"][0]["key_hex"]=json!("07".repeat(32));assert!(serde_json::from_value::<Config>(v).is_err());let mut v=config_value();v["mode"]=json!("real");let cfg:Config=serde_json::from_value(v.clone()).unwrap();assert!(cfg.validate().is_err());v["nodes"][0]["templates"]=json!(["sum-v1"]);let cfg:Config=serde_json::from_value(v).unwrap();cfg.validate().unwrap();}
+#[test]
+fn state_mode_is_pinned_and_lock_is_os_held(){let t=tempfile::tempdir().unwrap();let cfg:Config=serde_json::from_value(config_value()).unwrap();let state=cfg.prepare_state(t.path()).unwrap();assert!(state.ends_with("state"));let first=ao_reason_workbench::config::ServiceLock::acquire(&state,"controller").unwrap();assert!(ao_reason_workbench::config::ServiceLock::acquire(&state,"controller").is_err());drop(first);assert!(ao_reason_workbench::config::ServiceLock::acquire(&state,"controller").is_ok());let mut other=cfg.clone();other.mode=ao_reason_workbench::config::Mode::Real;assert!(other.prepare_state(t.path()).is_err());}

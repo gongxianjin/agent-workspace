@@ -1,0 +1,51 @@
+[package]
+name = "ao-reason-workbench"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.95"
+description = "Native AO + Reason desktop controller and runner"
+license = "MIT"
+default-run = "ao-reason-workbench"
+
+[features]
+default = ["gui"]
+gui = ["dep:eframe"]
+
+[dependencies]
+anyhow = "1"
+eframe = { version = "=0.37.0", optional = true, default-features = false, features = ["default_fonts", "system_fonts", "glow", "x11", "wayland"] }
+hex = "0.4"
+hmac = "0.12"
+reqwest = { version = "=0.13.5", default-features = false, features = ["blocking", "json"] }
+rusqlite = { version = "=0.41.1", default-features = false }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+uuid = { version = "1", features = ["v4", "serde"] }
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "=0.61.2", features = ["Win32_Foundation", "Win32_Security", "Win32_System_JobObjects", "Win32_System_Threading", "Win32_Storage_FileSystem", "Win32_System_IO", "Win32_System_Pipes", "Win32_UI_Controls_Dialogs"] }
+
+[target.'cfg(unix)'.dependencies]
+libc = "0.2"
+
+# Linux worker only: the model endpoint call happens inside the Linux worker
+# process (user-confirmed). Keeping the TLS stack Linux-target-only means the
+# Windows host build never compiles ring/aws-lc C code (blocked by the cc-crate
+# spawn failure) and the Linux cross-build gets it via zig cc.
+[target.'cfg(target_os = "linux")'.dependencies]
+reqwest = { version = "=0.13.5", default-features = false, features = ["blocking", "json", "rustls-no-provider"] }
+rustls = { version = "=0.23.46", default-features = false, features = ["ring", "std", "tls12", "logging"] }
+ring = "0.17.14"
+
+[dev-dependencies]
+tempfile = "3"
+
+[[bin]]
+name = "ao-reason-workbench"
+path = "src/main.rs"
+required-features = ["gui"]
+
+[profile.release]
+lto = "thin"
+strip = "debuginfo"

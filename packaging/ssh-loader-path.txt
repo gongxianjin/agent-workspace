@@ -1,0 +1,165 @@
+DIRECT SSH WORKER: OPTIONAL PER-USER LOADER DIRECTORY
+
+Source adaptation only; not a rebuilt or accepted product package.
+This note supplements, and does not rewrite, frozen l23/l24 evidence.
+
+WHY
+The l23 Linux aw-cli ELF requests libsqlite3.so.0 without RPATH/RUNPATH.
+Placing l24/lib/libsqlite3.so.0 next to the binary does not establish Linux
+loader resolution in the exact noninteractive SshWorkerTransport context.
+
+EXISTING CONFIG, OPTIONAL LOADER IDENTITY
+The existing native-ssh-gateway/1 config accepts remote_library_path,
+an optional string representing ONE operator-approved absolute Linux directory,
+plus remote_library_sha256 and remote_library_bytes. When remote_library_path is
+present, all three fields are required: the SHA must be lowercase 64-hex and the
+byte count must be positive. Partial or invalid identity is rejected. When all
+three are omitted, the existing remote command remains byte-for-byte unchanged.
+No new gateway, CLI entry, Envelope kind, Worker config field or ledger is added.
+An empty path is an error, not an inherited/default search path. The parser rejects
+relative paths, root '/', empty/dot/parent segments, trailing or duplicate slashes,
+colon-separated lists, whitespace and shell expansion. Only the existing safe path
+alphabet (ASCII letters/digits, / . _ -) is allowed. These config values do not
+prove that a directory is approved, writable only by its owner, free of unsafe
+links, or even present. Those remain external deployment gates.
+
+The command verifies the selected library before direct execution:
+  test -d <directory> && test -r <directory>/libsqlite3.so.0 &&
+  test "$(sha256sum <directory>/libsqlite3.so.0 | cut -d' ' -f1)" = "<sha>" &&
+  test "$(wc -c < <directory>/libsqlite3.so.0)" -eq <bytes> &&
+  LD_LIBRARY_PATH=<directory> exec <remote_worker> owner-exec --config <remote_config>
+For the adapted candidate payload, the expected SQLite identity is bytes=1557000,
+sha256=219330a1d65b9cced7ebe947ca13cede34995477bf50f9b846651d06a17eb181.
+
+COMMAND SEMANTICS
+After unchanged worker SHA256 and byte-count tests, the optional path contributes
+these shell operations in the SAME SSH command:
+  test -d <directory> && test -r <directory>/libsqlite3.so.0 &&
+  LD_LIBRARY_PATH=<directory> exec <remote_worker> owner-exec --config <remote_config>
+The angle-bracket terms are notation, not runnable defaults or deployment facts.
+The environment assignment replaces rather than appends an inherited library
+search path. It is scoped to exec; no interactive export, profile, server SSH
+configuration, global environment or root/system installation is needed.
+The worker remains the exact direct ELF: no wrapper and no ld-linux invocation
+in place of remote_worker. Worker current_exe self-hash remains unchanged.
+The environment is inherited by its fixed owner-child, which uses the same ELF.
+Existing StrictHostKeyChecking/BatchMode/identity-file arguments are unchanged.
+
+TRUST AND FAILURE BOUNDARIES
+LD_LIBRARY_PATH is trusted executable-code configuration, not user/task data.
+Before separate execution authorization, an ordinary-account deployment owner
+must approve and verify the directory and every selected library; reject unsafe
+permissions, symlinks, user-controlled search lists, setuid/file capabilities,
+preload configuration or other conditions that defeat the intended loader model.
+The test -d/-r checks are only existence/readability gates. They do not hash the
+library or verify transitive dependencies. Artifact SHA/bytes tests still bind
+the worker; l24 SQLite bytes/SHA must be independently verified after transfer.
+Actual loading still requires independent same-context resolution evidence.
+No GLIBC, SQLite ABI behavior, libz availability or cgroup readiness follows
+from command-string tests. Loader failure before signed terminal remains UNKNOWN
+with reservation retained; a shell/SSH success is not terminal admission.
+Signed owner launch/terminal evidence and Store admission remain sole release
+proof. No changes to protocol/relay/Reason or local diagnostic behavior are made.
+
+FROZEN VERSION GAP
+The fixed Windows diagnostic candidate predates remote_library_path and rejects
+it as an unknown field. Its manifest and all l23/l24 files remain immutable.
+This change has only local Rust test compilation; it does not produce a new
+accepted Windows Manager or rebuild the Linux Worker. A separately authorized,
+version-bound Manager build/package/acceptance is needed before using the new
+field in the real entry. Do not label the old candidate as adapted.
+
+OPTIONAL DELEGATED USER-SERVICE COMMAND SEAM (2026-11-11)
+The same native-ssh-gateway/1 schema accepts launch_mode="direct" (default) or
+"delegated-user-service"; unknown modes are rejected. Direct mode preserves the
+previous remote command exactly, with or without the optional pinned library.
+The delegated mode retains worker/library SHA and byte checks, then executes:
+  /usr/bin/systemd-run --user --pipe --wait --collect --quiet --property=Delegate=yes
+  --property=RuntimeMaxSec=<W+5>s --property=TimeoutStopSec=5s
+  --setenv=AW_EXPECTED_OWNER_TIMEOUT_SECS=<W>
+  [--setenv=LD_LIBRARY_PATH=<approved-directory>] --
+  <remote_worker> owner-exec --config <remote_config>
+These flags are fixed, not arbitrary operator shell/unit properties. Failure has
+no direct-mode fallback. --quiet suppresses systemd-run status chatter; --pipe
+passes the signed stdin and worker streams, while the loader environment must be
+set inside the service via --setenv. Actual stream cleanliness is NOT_VERIFIED
+until a same-context remote probe; command/frame tests do not run systemd.
+
+CURRENT-UNIT OWNER CONTRACT (local source integration; not deployed)
+The worker native-worker-config/1 now accepts cgroup_root_mode="explicit"
+(default) or "current-unit". Unknown modes reject. Explicit with no service marker
+retains direct root selection; explicit plus AW_EXPECTED_OWNER_TIMEOUT_SECS rejects.
+Current-unit requires that marker equal the configured timeout exactly before
+reading a key, claiming work, or starting a business child. No config is rewritten.
+
+Current-unit uses cgroup_root only as a strict component-ancestor policy inside
+/sys/fs/cgroup; the actual root comes from the unique unified /proc/self/cgroup.
+Non-normal paths, links, v1-only/ambiguous entries and roots outside that fixed
+mount reject. Preflight requires ordinary matching real/effective UID/GID,
+cgroup2, UID-owned directory and writable cgroup.procs without group/other write,
+domain type and EMPTY subtree_control. Owner must occur in direct cgroup.procs;
+the root need not be empty or singleton-owner. No controllers are changed, no
+owner is moved and no writable-parent search is performed.
+
+The candidate service basename alone is queried using absolute /usr/bin/systemctl
+--user show (no shell, PTY or stdin), with independent bounded stdout/stderr,
+2-second query budget, kill on error/timeout and real wait. Required properties:
+Transient=yes, Delegate=yes, MainPID=owner PID, ControlGroup=exact unified path,
+and nonempty InvocationID matching INVOCATION_ID. The self cgroup is re-read and
+must be unchanged. Both fixed executable locations remain unverified on target.
+
+The gated child must be born in the actual unit root. It is moved only to
+actual-root/workers/<exclusive-instance>/<exclusive-handle>. Shared workers is
+never request-cleaned; private instance/target collisions reject. workers and
+instance require empty DIRECT cgroup.procs (descendant populated=1 is expected).
+Target before migration must be empty/unpopulated; after migration its /proc path
+must equal target, direct procs must be only child and populated must be 1, with
+PID/PPID/PGID/start ticks unchanged before G. Terminal success still requires
+native child wait, both EOFs, complete process-group scan, empty/unpopulated target,
+and reverse nonrecursive removal of identity-tracked private directories. Residual
+processes/removal failure yield UNKNOWN, not manufactured terminal. Drop is only
+best effort. This cooperative same-UID test runtime is not hostile same-user
+isolation or general DBus unit management.
+
+DELEGATED DEADLINES (coordinator ruling, 2026-11-11)
+Delegated expected_worker_timeout_secs W is required, 1..270; direct rejects it.
+Gateway timeout_secs T remains 1..300 and requires T>=W+30. R=W+5 is RuntimeMaxSec,
+S=5 stop, A=15 setup, H=A+R+S=W+25 helper total, L=5 local margin. W270/T300 is
+accepted; W271 or insufficient T rejects. Metadata timeout_secs=H plus paired
+setup_timeout_secs=15 and channel_timeout_secs=R+S; pairing/arithmetic reject
+invalid inputs. Direct frame shape/command and helper timing are unchanged.
+
+Python H starts at main entry before frame read. A/H are COOPERATIVE stage budgets,
+not watchdog guarantees: public blocking calls receive remaining stage time,
+late connect is rejected BEFORE exec, late exec fails without claiming no launch,
+channel deadline=min(original H,channel-start+R+S), never refreshed. Client closes
+on return/failure. Stuck DNS/auth/exec can exceed these cooperative budgets.
+Rust T begins before local spawn and covers stdin/drain/reap observations; timeout
+kills and really waits the owned helper, preserving already-written pipe prefixes.
+Spawn/kill/wait are OS calls, not separately interruptible hard real-time promises.
+Bytes still buffered only in helper memory can be lost when killed; outcome remains
+UNKNOWN. There is no extra helper process, watchdog thread or framing/control
+protocol. Descendant-held pipes can remain after bounded return; do not treat
+reader deadline as proof all inherited handles/threads were cleaned.
+
+RuntimeMax/TimeoutStop intend a remote service bound once started, NOT verified
+remote cleanup or successful-run proof. Store alone admits complete signed native
+terminal evidence; transport exit/status/arithmetic never releases a slot. Actual
+ordinary-user Linux cgroup execution, systemd stream cleanliness, killed-transport
+remote cleanup and cross-host Store release remain NOT_RUN/NOT_VERIFIED. Local
+parser tests and installed-target cargo check are not Linux runtime evidence.
+
+The bundled Paramiko interpreter is a Windows Manager runtime, not a dependency
+of the remote native Linux Worker. Non-Windows default gateway construction now
+fails closed with "bundled Paramiko runtime unavailable on this platform" instead
+of selecting python3 through PATH. Windows retains its EXE-relative
+runtime/python/python.exe. No Linux Python bundle is supplied or claimed.
+
+CURRENT DELIVERY HELPER
+Use .test-script/linux-b-current-delivery/prepare_delivery.py for LOCAL identity
+and missing-fact diagnostics only. It pins the l24 manifest and its l23 bindings,
+never opens identity/key/known_hosts references and never connects. Missing
+ordinary login authorization/identity/host-key, loader, or cgroup facts produce
+named blockers. Even complete claims do not authorize SSH or prove remote facts.
+Retain deployment=AUTH_BLOCKED, remote/runtime=NOT_RUN, and the adapted-Manager
+artifact blocker. See that helper's USAGE.txt for exact local-only invocation.

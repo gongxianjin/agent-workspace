@@ -162,8 +162,18 @@ fn worker(mut options:ServiceOptions,shared:Arc<Shared>,rx:Receiver<Accepted>,tx
   }
   match rx.recv_timeout(Duration::from_millis(20)) {
    Ok(request)=>{
+    // Hoisted for the pre-receipt publish gate below: only GatewayConfigure's
+    // effects are fully projected inside the request branch.
+    let is_configure=matches!(request.command,UiCommand::GatewayConfigure{..});
     let result=if shared.stop.load(Ordering::Acquire){Err(stopped())}else if matches!(&request.command,UiCommand::GatewayConfigure{..}|UiCommand::GatewayDispatch{..}|UiCommand::GatewayDispatchProject{..}) {
-     gateway_command(&mut options,&mut gateway,request.command).map_err(|e|error("ssh_gateway_rejected",&format!("{e:#}"),"核对显式Worker配置及保留名额；UNKNOWN不自动重跑，配置成功不表示远端验证"))
+     let configured=gateway_command(&mut options,&mut gateway,request.command);
+     // A configure success must be visible in the snapshot before its receipt
+     // is delivered: the UI polls the snapshot right after draining the
+     // result, and the loop-tail projection can lag by up to one iteration.
+     if configured.is_ok()&&is_configure {
+      if let Some(manager)=gateway.as_ref(){if let Err(e)=project_gateway(manager,&mut snapshot){push_error(&mut snapshot,error("gateway_snapshot_failed",&e.to_string(),"保留账本并检查实际执行证据"));}}
+     }
+     configured.map_err(|e|error("ssh_gateway_rejected",&format!("{e:#}"),"核对显式Worker配置及保留名额；UNKNOWN不自动重跑，配置成功不表示远端验证"))
     }else if super::projects::is_project_command(&request.command){
      let action=(||->Result<Value>{if projects.is_none(){projects=Some(super::projects::Projects::open(&options.state_dir)?);}projects.as_mut().context("project state unavailable")?.command(request.command)})();
      action.map_err(|e|error("project_action_rejected",&e.to_string(),"核对上传版本/审核门槛与项目阻塞原因；未执行的阶段不会标为成功"))
@@ -185,6 +195,19 @@ fn worker(mut options:ServiceOptions,shared:Arc<Shared>,rx:Receiver<Accepted>,tx
     }else if let Some(local)=runtime.as_mut(){local.command(request.command,clock()).map_err(|_|error("action_rejected","核心拒绝此操作；未报告成功","刷新实际状态并核对所属任务、attempt、session、审批范围及退出证据"))}
     else{Err(error("not_started","尚未启动本地体验，或真实模式尚未就绪","显式启动本地体验；真实模式不会自动回退"))};
     if let Err(e)=&result{push_error(&mut snapshot,e.clone());}
+    // GatewayConfigure is the one command whose effects are fully projected into
+    // the worker snapshot inside the request branch (project_gateway above), so
+    // its receipt must imply that projection is published: publish BEFORE the
+    // receipt, or a drain-then-snapshot reader races the loop-tail publish
+    // (proven by the flaky rust_gateway_manager background_service failure).
+    // Other commands deliberately do NOT publish here: StartLocal sets readiness
+    // early but the actor/runs projection happens at loop tail, so an early
+    // publish would expose Ready without the actor (proven by the rust_service
+    // reopen failure); project commands rely on receipt-carried contracts with a
+    // deliberately stale published snapshot (rust_projects negative control).
+    if is_configure && result.is_ok() {
+        publish(&shared,&snapshot,&repaint,&mut last);
+    }
     // A result credit was reserved before acceptance. At most BOUND results can be outstanding.
     if tx.try_send(CommandResult{request_id:request.id,result}).is_err(){shared.stop.store(true,Ordering::Release);}
     repaint_safely(&repaint);

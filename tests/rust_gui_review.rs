@@ -110,7 +110,7 @@ fn action_response(ctx: &egui::Context, selector: &str) -> egui::Response {
 fn pending_exit_reviews_are_reachable_and_all_approval_cannot_start() {
     let t = tempfile::tempdir().unwrap();
     let (mut app, ctx, id) = recovered_pending_exit(t.path());
-    let status = seek(&mut app, &ctx, "split · report_pending_exit", None);
+    let status = seek(&mut app, &ctx, "拆分任务 · 结果已回传，等退出确认", None);
     assert!(status.width() > 0.);
     let detail = seek(&mut app, &ctx, "真实拆分结果已读取；执行退出未获独立证明，保留名额，禁止后续开工", None);
     assert!(detail.width() > 0.);

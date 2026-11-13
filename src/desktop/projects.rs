@@ -1,4 +1,43 @@
 use std::{collections::BTreeMap, path::PathBuf};
+
+/// Human-readable phase names. Internal phase strings are the persisted
+/// state-machine contract and never change; this map is display-only.
+fn phase_label(phase: &str) -> &str {
+    match phase {
+        "needs_document" => "① 新建项目——等待导入设计文档",
+        "document_review" => "② 文档待确认——请核对内容后点“确认此上传版本”",
+        "confirmed" => "③ 文档已确认——可以拆分任务",
+        "splitting" => "④ 正在拆分任务……",
+        "task_review" => "⑤ 任务待审核——逐项“审核通过”或填写原因“驳回”",
+        "ready" => "⑥ 任务全部通过——可“手动开始开发”",
+        "developing" => "⑦ 开发进行中……",
+        "developed" => "⑧ 开发完成——可“运行独立测试”",
+        "testing" => "⑨ 独立测试进行中……",
+        "test_failed" => "⑩ 测试未通过——填写返修原因后“提交返修”",
+        "repairing" => "⑪ 返修进行中……",
+        "redoing" => "⑪ 重做进行中……",
+        "awaiting_acceptance" => "⑫ 待人工验收——检查结果后点“人工验收通过”",
+        "accepted" => "✓ 已验收——项目完成",
+        _ => phase,
+    }
+}
+fn action_kind_label(kind: &str) -> &str {
+    match kind {
+        "split" => "拆分任务", "redo" => "重做任务", "develop" => "开发",
+        "test" => "独立测试", "repair" => "返修", "accept" => "人工验收",
+        _ => kind,
+    }
+}
+fn action_state_label(state: &str) -> &str {
+    match state {
+        "requested" => "已受理，排队中", "running" => "执行中",
+        "report_pending_exit" => "结果已回传，等退出确认",
+        "succeeded" => "成功", "failed" => "失败",
+        "blocked" => "被阻塞（见说明）", "unknown" => "结果未知，需人工判断",
+        _ => state,
+    }
+}
+
 use agentranch::core::service::{AppSnapshot, ProjectSnapshot, UiCommand};
 use eframe::egui::{self, RichText};
 use super::{action::action, pending::Pending};
@@ -44,7 +83,7 @@ impl Projects {
             ui.separator();
             egui::ScrollArea::vertical().id_salt("project-list-scroll").show(ui, |ui| {
                 for project in &snapshot.projects {
-                    if ui.selectable_label(self.selected.as_deref() == Some(&project.id), format!("{}\n{}", project.name, project.phase)).clicked() {
+                    if ui.selectable_label(self.selected.as_deref() == Some(&project.id), format!("{}\n{}", project.name, phase_label(&project.phase))).clicked() {
                         self.selected = Some(project.id.clone());
                         self.path.clear();
                         self.repair_reason.clear();
@@ -86,7 +125,7 @@ impl Projects {
         let id = &project.id;
         ui.separator();
         ui.heading(&project.name);
-        ui.label(format!("当前阶段：{}", project.phase));
+        ui.label(format!("当前阶段：{}", phase_label(&project.phase)));
         egui::CollapsingHeader::new("项目与产物目录").id_salt(("project-directories", id)).show(ui, |ui| {
             ui.add(egui::Label::new(format!("项目目录：{}", if project.project_path.is_empty() { "尚未准备目录" } else { &project.project_path })).wrap());
             ui.add(egui::Label::new(format!("产物目录：{}", if project.product_path.is_empty() { "尚未准备目录" } else { &project.product_path })).wrap());
@@ -94,7 +133,12 @@ impl Projects {
             ui.small("刷新项目会由后台准备或校验受管目录；旧项目首次刷新可能创建目录，不启动开发。");
             action(ui, pending, commands, "刷新项目", true, &format!("project:{id}:refresh"), format!("refresh:{id}"), UiCommand::ProjectRefresh { project_id: id.clone() });
         });
-        for reason in &project.blockers { ui.strong(format!("阻塞：{reason}")); }
+        for reason in &project.blockers {
+            ui.group(|ui| {
+                ui.strong("⚠ 需要处理");
+                ui.add(egui::Label::new(reason).wrap());
+            });
+        }
         ui.separator();
         ui.strong("定稿设计文档");
         ui.label("UTF-8 .md / .txt，原文件不超过 256 KiB。输入文件路径，或把文件拖到此窗口。");
@@ -145,7 +189,7 @@ impl Projects {
         if project.actions.is_empty() { ui.label("还没有执行记录。未执行不等于完成。"); }
         for a in &project.actions {
             ui.group(|ui| {
-                ui.strong(format!("{} · {}", a.kind, a.state));
+                ui.strong(format!("{} · {}", action_kind_label(&a.kind), action_state_label(&a.state)));
                 if let Some(session) = &a.session { ui.small(format!("会话：{session}")); }
                 ui.add(egui::Label::new(&a.detail).wrap());
             });

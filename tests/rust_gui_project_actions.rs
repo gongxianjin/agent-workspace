@@ -434,7 +434,17 @@ fn repair_requires_reason_and_click_dispatches_only_after_reason_entry() {
     assert!(host_project_runs(&state, "repair").is_empty());
     assert_eq!(app.snapshot().projects[0].phase, "test_failed");
 
-    let reason_label = seek(&mut app, &ctx, "返修原因（测试未通过时必须显式发起返修，之后再复测）");
+    seek(&mut app, &ctx, "返修原因（测试未通过时必须显式发起返修，之后再复测）");
+    // seek() parks the label at the scroll viewport's bottom edge, where the
+    // fixed +20 click offset can fall into the status panel below the detail
+    // scroll. Scroll the reason editor fully into view first, then re-locate
+    // the label in the settled frame before clicking.
+    scroll(&mut app, &ctx, -160.);
+    let output = frame(&mut app, &ctx, vec![]);
+    let reason_label = texts(&output).into_iter()
+        .find(|(text, _)| text == "返修原因（测试未通过时必须显式发起返修，之后再复测）")
+        .map(|(_, rect)| rect)
+        .expect("reason label must stay visible after the settling scroll");
     click(&mut app, &ctx, egui::pos2(reason_label.center().x, reason_label.bottom() + 20.));
     frame(&mut app, &ctx, vec![egui::Event::Text("补齐库存扣减失败修复".into())]);
     let _submit = seek(&mut app, &ctx, "提交返修");

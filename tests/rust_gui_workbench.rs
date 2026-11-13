@@ -20,7 +20,10 @@ fn wait(app: &mut desktop::Workbench, predicate: impl Fn(&agentranch::core::serv
     panic!("workbench did not converge: {:?}", app.snapshot());
 }
 fn render(app: &mut desktop::Workbench, ctx: &egui::Context) -> egui::FullOutput {
-    let mut output = ctx.run_ui(egui::RawInput { screen_rect: Some(egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(1024., 768.))), ..Default::default() }, |ui| {
+    // 1100x1200 keeps the document preview inside the detail scroll's visible
+    // region; at smaller heights the taller productized labels push it below
+    // the fold and egui culls the etched text from the headless output.
+    let mut output = ctx.run_ui(egui::RawInput { screen_rect: Some(egui::Rect::from_min_size(egui::Pos2::ZERO, egui::vec2(1100., 1200.))), ..Default::default() }, |ui| {
         egui::CentralPanel::default().show(ui, |ui| app.show(ui));
     });
     // A headless renderer intentionally does not upload GPU textures.

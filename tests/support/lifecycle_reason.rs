@@ -1,5 +1,5 @@
 //! Owned local IPC fixture only; no AO/Runner/model or OS-exit claims.
-use ao_reason_workbench::core::protocol::{Envelope, PROTOCOL};
+use agentranch::core::protocol::{Envelope, PROTOCOL};
 use serde_json::{json, Value};
 use std::{io::{Read, Write}, path::Path, sync::{Arc, Mutex, atomic::{AtomicBool, Ordering}}, time::{Duration, Instant}};
 
@@ -43,7 +43,7 @@ impl LocalReason {
     pub fn starts(&self) -> usize { self.bus.lock().unwrap().starts }
     pub fn replay_ready(&self, probe: &Envelope) { queue_ready(&mut self.bus.lock().unwrap(), probe); }
     pub fn fail_inbox(&self, fail: bool) { self.bus.lock().unwrap().fail_inbox = fail; }
-    pub fn queue_run_event(&self, run: &ao_reason_workbench::core::store::Run, kind: &str, payload: Value) {
+    pub fn queue_run_event(&self, run: &agentranch::core::store::Run, kind: &str, payload: Value) {
         let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs();
         let mut event = Envelope { schema: PROTOCOL.into(), message_id: uuid::Uuid::new_v4().to_string(),
             deployment: "lifecycle-test".into(), from: "B".into(), to: "A".into(),

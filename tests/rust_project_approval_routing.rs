@@ -1,7 +1,7 @@
 //! Service/Projects/Store boundary tests. All approvals and signed ingress are
 //! synthetic local fixtures, NOT Linux, live AO/Reason/model, or native ownership
 //! evidence. The configured IPC endpoint is deliberately absent; no worker runs.
-use ao_reason_workbench::{
+use agentranch::{
     config::{Actor, Mode, NodeSpec},
     core::{
         projects::Projects,
@@ -123,7 +123,7 @@ fn wait_snapshot(handle: &mut ServiceHandle, predicate: impl Fn(&AppSnapshot) ->
     }
 }
 
-fn reply(handle: &mut ServiceHandle, command: UiCommand) -> Result<Value, ao_reason_workbench::core::service::ServiceError> {
+fn reply(handle: &mut ServiceHandle, command: UiCommand) -> Result<Value, agentranch::core::service::ServiceError> {
     let id = handle.try_submit(command).unwrap();
     let end = Instant::now() + Duration::from_secs(5);
     loop {

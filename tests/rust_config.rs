@@ -1,4 +1,4 @@
-use ao_reason_workbench::config::{Config,NodeSpec};
+use agentranch::config::{Config,NodeSpec};
 use serde_json::json;
 fn config_value()->serde_json::Value{json!({"schema":"ao-reason-config/1","mode":"local","role":"controller","deployment":"local-test","state_dir":"state","nodes":[{"id":"B","address":"local-B/runner","key_file":"B.key","slots":1,"templates":["sum-native-v1"]}]})}
 #[test]
@@ -8,4 +8,4 @@ fn trusted_config_uses_key_file_and_defaults_real_nodes_unadmitted(){let t=tempf
 #[test]
 fn config_refuses_extra_secret_and_cross_mode_templates(){let mut v=config_value();v["nodes"][0]["key_hex"]=json!("07".repeat(32));assert!(serde_json::from_value::<Config>(v).is_err());let mut v=config_value();v["mode"]=json!("real");let cfg:Config=serde_json::from_value(v.clone()).unwrap();assert!(cfg.validate().is_err());v["nodes"][0]["templates"]=json!(["sum-v1"]);let cfg:Config=serde_json::from_value(v).unwrap();cfg.validate().unwrap();}
 #[test]
-fn state_mode_is_pinned_and_lock_is_os_held(){let t=tempfile::tempdir().unwrap();let cfg:Config=serde_json::from_value(config_value()).unwrap();let state=cfg.prepare_state(t.path()).unwrap();assert!(state.ends_with("state"));let first=ao_reason_workbench::config::ServiceLock::acquire(&state,"controller").unwrap();assert!(ao_reason_workbench::config::ServiceLock::acquire(&state,"controller").is_err());drop(first);assert!(ao_reason_workbench::config::ServiceLock::acquire(&state,"controller").is_ok());let mut other=cfg.clone();other.mode=ao_reason_workbench::config::Mode::Real;assert!(other.prepare_state(t.path()).is_err());}
+fn state_mode_is_pinned_and_lock_is_os_held(){let t=tempfile::tempdir().unwrap();let cfg:Config=serde_json::from_value(config_value()).unwrap();let state=cfg.prepare_state(t.path()).unwrap();assert!(state.ends_with("state"));let first=agentranch::config::ServiceLock::acquire(&state,"controller").unwrap();assert!(agentranch::config::ServiceLock::acquire(&state,"controller").is_err());drop(first);assert!(agentranch::config::ServiceLock::acquire(&state,"controller").is_ok());let mut other=cfg.clone();other.mode=agentranch::config::Mode::Real;assert!(other.prepare_state(t.path()).is_err());}

@@ -362,7 +362,7 @@ def prepare_existing(args, key, evidence):
     manifest = bounded_json(args.package_manifest)
     require(Path(manifest["package_dir"]).resolve() == package, "package_manifest_path_mismatch")
     package_facts = {}
-    for label, relative in (("manager", "ao-reason-workbench.exe"), ("worker_cli", "aw-cli.exe"),
+    for label, relative in (("manager", "agentranch.exe"), ("worker_cli", "aw-cli.exe"),
                             ("helper", "tools/paramiko_gateway.py"), ("python", "runtime/python/python.exe")):
         identity = file_identity(package / relative)
         pinned = manifest["required_files"][label]
@@ -448,7 +448,7 @@ def _require_owned_window_ready(ui, hwnd, pid):
     require(ui.user.GetWindowRect(hwnd, ui.ctypes.byref(rect)), "window_rect_unavailable")
     require(rect.right - rect.left >= 720 and rect.bottom - rect.top >= 540,
             "owned_window_geometry_changed")
-    require(ui.window_title(hwnd) == "AO + Reason 工作台", "owned_window_title_changed")
+    require(ui.window_title(hwnd) == "agentranch 工作台", "owned_window_title_changed")
 
 
 def wait_for_owned_foreground(ui, hwnd, pid, timeout=15, poll_interval=0.1):
@@ -475,7 +475,7 @@ def find_manager_window(ui, pid, timeout=15):
                 rect = ui.RECT()
                 if ui.user.GetWindowRect(hwnd, ui.ctypes.byref(rect)):
                     width, height = rect.right - rect.left, rect.bottom - rect.top
-                    if width >= 720 and height >= 540 and ui.window_title(hwnd) == "AO + Reason 工作台":
+                    if width >= 720 and height >= 540 and ui.window_title(hwnd) == "agentranch 工作台":
                         candidates.append((width * height, int(hwnd)))
             return True
         ui.user.EnumWindows(callback, 0)
@@ -498,7 +498,7 @@ def manager_session(key, prepared, evidence):
     process, hwnd = None, None
     with (evidence / "manager.stdout.log").open("xb") as output, (evidence / "manager.stderr.log").open("xb") as error:
         try:
-            process = subprocess.Popen([str(package / "ao-reason-workbench.exe"), "--real",
+            process = subprocess.Popen([str(package / "agentranch.exe"), "--real",
                 "--gateway-key-stdin", "--state-dir", str(evidence / "manager-state")],
                 cwd=str(package), env=env, stdin=subprocess.PIPE, stdout=output, stderr=error)
             process.stdin.write(key)

@@ -3,7 +3,7 @@
 //! configuration contract on every platform: scheme, bare-origin URL shape,
 //! certificate pin payload, timeout bound, credential absence and the JSON
 //! file shape staged for Linux workers.
-use ao_reason_workbench::adapters::model_endpoint::ModelEndpoint;
+use agentranch::adapters::model_endpoint::ModelEndpoint;
 use serde_json::json;
 
 const CERT_A: &str = "-----BEGIN CERTIFICATE-----\nAAAA\n-----END CERTIFICATE-----\n";

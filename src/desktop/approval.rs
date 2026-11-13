@@ -1,4 +1,4 @@
-use ao_reason_workbench::core::service::{ApprovalView, UiCommand};
+use agentranch::core::service::{ApprovalView, UiCommand};
 
 pub fn decision_command(approval: &ApprovalView, decision_id: &str, now: u64) -> Option<UiCommand> {
     if !approval.can_decide || now >= approval.expires_at || !approval.offered.iter().any(|d| d.id == decision_id) {

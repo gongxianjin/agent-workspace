@@ -1,5 +1,5 @@
 use anyhow::{bail, Result};
-use ao_reason_workbench::{
+use agentranch::{
     config::{Actor, NodeSpec},
     core::{
         relay::{RelayBridge, RelayOutcome},
@@ -70,7 +70,7 @@ impl RecordingTransport {
     }
 }
 
-impl ao_reason_workbench::core::relay::RelayTransport for RecordingTransport {
+impl agentranch::core::relay::RelayTransport for RecordingTransport {
     fn send(&mut self, destination: &str, frame: &[u8]) -> Result<()> {
         if let Some(message) = &self.failure {
             bail!("{message}");

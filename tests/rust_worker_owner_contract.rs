@@ -1,7 +1,7 @@
 //! Pure owner-contract fixtures only: no process, filesystem, network, or clock probes.
 //! Written before the implementation; NOT_RUN in the resource-gated implementation wave.
 
-use ao_reason_workbench::core::{
+use agentranch::core::{
     protocol::{ExecutionIdentity, canonical},
     worker_owner::{
         ExpectedOwnerBinding, OwnerEvidenceBundle, OwnerProcessIdentity, OwnerRef,

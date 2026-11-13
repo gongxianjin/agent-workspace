@@ -1,7 +1,7 @@
 //! Runner native-claim contract for project-work-v1: the Linux worker's
 //! runner.sqlite must accept and claim a signed project-work start the same
 //! way it does sum-v1, keeping the artifact and session binding.
-use ao_reason_workbench::{
+use agentranch::{
     config::NodeSpec,
     core::{protocol::{Envelope, PROTOCOL}, project_work::{ConfirmedDocument, ProjectStage, ProjectWork, WorkTask}, runner::Runner},
 };
@@ -91,7 +91,7 @@ fn runner_claimed_identity_matches_controller_from_detail_reconstruction() {
         "project_work": serde_json::to_value(work()).unwrap(),
         "worker_artifact_sha256": artifact,
     });
-    let rebuilt = ao_reason_workbench::core::protocol::ExecutionIdentity::from_detail(
+    let rebuilt = agentranch::core::protocol::ExecutionIdentity::from_detail(
         "runner-native-project", &start.run_id, start.attempt, &start.epoch,
         Some("session-1"), &detail,
     ).unwrap();
@@ -136,16 +136,16 @@ fn terminal_parse_failure_surfaces_child_stderr_prefix() {
     // stderr — was discarded on the parse-failure path, forcing remote
     // forensics. The parse error must carry the retained stderr prefix so
     // native_unknown persists the real cause.
-    use ao_reason_workbench::core::owner_producer::{
+    use agentranch::core::owner_producer::{
         CleanupFacts, LaunchFacts, OwnedProcessPort, OwnerLaunchPlan, StreamReadOutcome,
         TerminalFacts, finish_owner_evidence,
     };
-    use ao_reason_workbench::core::protocol::canonical;
+    use agentranch::core::protocol::canonical;
 
     struct DeadChildPort;
     impl OwnedProcessPort for DeadChildPort {
-        fn owner_identity(&self) -> anyhow::Result<ao_reason_workbench::core::worker_owner::OwnerProcessIdentity> {
-            Ok(ao_reason_workbench::core::worker_owner::OwnerProcessIdentity { pid: 100, start_ticks: 1000 })
+        fn owner_identity(&self) -> anyhow::Result<agentranch::core::worker_owner::OwnerProcessIdentity> {
+            Ok(agentranch::core::worker_owner::OwnerProcessIdentity { pid: 100, start_ticks: 1000 })
         }
         fn launch(&mut self, _: &OwnerLaunchPlan) -> anyhow::Result<LaunchFacts> {
             Ok(LaunchFacts { child_pid: 200, child_start_ticks: 2000, pgid: 200 })
@@ -184,7 +184,7 @@ fn terminal_parse_failure_surfaces_child_stderr_prefix() {
     let mut port = DeadChildPort;
     let owner = port.owner_identity().unwrap();
     let facts = port.launch(&plan).unwrap();
-    let binding = ao_reason_workbench::core::owner_producer::complete_binding(&plan, &owner, &facts).unwrap();
+    let binding = agentranch::core::owner_producer::complete_binding(&plan, &owner, &facts).unwrap();
     runner.native_launch(&binding, now()).unwrap();
     let production = finish_owner_evidence(&mut port, &plan, &owner, &facts).unwrap();
 

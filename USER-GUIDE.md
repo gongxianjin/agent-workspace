@@ -1,4 +1,4 @@
-# AO + Reason Workbench 用户手册（v0.2-win）
+# agentranch 用户手册（v0.2-win）
 
 > 本手册与 v0.2-win 交付物对齐：Rust + egui 原生 Windows 管理端、随包 Python/Paramiko 网关、Linux 原生 Worker。旧版 Python/Web 入口已随本分支移除。
 >
@@ -11,7 +11,7 @@
 ```
 Windows Manager（原生 GUI）          Linux Worker（172.28.8.221，示例部署）
 ┌─────────────────────────┐  SSH(Paramiko)  ┌──────────────────────────┐
-│ ao-reason-workbench.exe │ ──────────────> │ 原生 Rust ELF（owner-exec）│
+│ agentranch.exe │ ──────────────> │ 原生 Rust ELF（owner-exec）│
 │ + aw-cli.exe（同版配对）  │   signed start  │ → 真实模型调用 → artifact   │
 │ + 随包 Python 运行时      │ <────────────── │ → signed terminal         │
 └─────────────────────────┘  Store admission └──────────────────────────┘
@@ -22,11 +22,11 @@ Windows Manager（原生 GUI）          Linux Worker（172.28.8.221，示例部
 
 ## 2. 包内容（v0.2-win 冻结包）
 
-冻结包目录名形如 `ao-reason-workbench-0.1.0-windows-x86_64-release-<source-sha8>`，包含：
+冻结包目录名形如 `agentranch-0.1.0-windows-x86_64-release-<source-sha8>`，包含：
 
 | 文件 | 作用 |
 |---|---|
-| `ao-reason-workbench.exe` | GUI 二进制（双击启动） |
+| `agentranch.exe` | GUI 二进制（双击启动） |
 | `aw-cli.exe` | CLI/受管 worker 二进制（**必须与 GUI 同目录同版**） |
 | `runtime/python/` | 随包 Python 3.14.3 + Paramiko 4.0.0（网关用，不装服务、不改 PATH） |
 | `libsqlite3-0.dll` | SQLite 3.52.0 运行库（包内携带） |
@@ -38,17 +38,17 @@ Windows Manager（原生 GUI）          Linux Worker（172.28.8.221，示例部
 ## 3. 安装与首次启动
 
 1. 解压 ZIP 到任意本地目录（无需安装器；SmartScreen 警告见 §9）。
-2. 保持 `ao-reason-workbench.exe` 与 `aw-cli.exe` 在同一目录，不要用其他目录的 exe 拼接。
-3. 双击 `ao-reason-workbench.exe`（local 模式，受控 fixture），或在终端：
+2. 保持 `agentranch.exe` 与 `aw-cli.exe` 在同一目录，不要用其他目录的 exe 拼接。
+3. 双击 `agentranch.exe`（local 模式，受控 fixture），或在终端：
 
 ```powershell
-.\ao-reason-workbench.exe                        # local 模式
-.\ao-reason-workbench.exe --real                 # real 模式
-.\ao-reason-workbench.exe --real --state-dir "D:\ao-state\real-221"
+.\agentranch.exe                        # local 模式
+.\agentranch.exe --real                 # real 模式
+.\agentranch.exe --real --state-dir "D:\ao-state\real-221"
 ```
 
 - `--state-dir` 必须后跟非空路径，不能重复；未知参数显示启动错误而非静默忽略。
-- 默认状态目录：local `%LOCALAPPDATA%\ao-reason-workbench\local`，real `...\real`。
+- 默认状态目录：local `%LOCALAPPDATA%\agentranch\local`，real `...\real`。
 - **local/real 状态身份不同，不要复用账本**；状态目录含 SQLite/锁/身份文件，处理故障先备份。
 
 ## 4. 快速上手：跑出第一个真实结果页面（real 模式）
@@ -67,7 +67,7 @@ Windows Manager（原生 GUI）          Linux Worker（172.28.8.221，示例部
 ```powershell
 .\aw-cli.exe --help
 .\aw-cli.exe check --config .\config.json            # 仅校验配置，不探测外部
-.\aw-cli.exe local-check --state-dir "$env:LOCALAPPDATA\ao-reason-workbench\local"
+.\aw-cli.exe local-check --state-dir "$env:LOCALAPPDATA\agentranch\local"
 .\aw-cli.exe mcp --config .\config.json              # stdin/stdout 协议，勿混入日志
 .\aw-cli.exe runner --config .\config.json --once
 .\aw-cli.exe runner --config .\config.json --stop-on-stdin

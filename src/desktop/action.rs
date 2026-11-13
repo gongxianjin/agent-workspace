@@ -1,9 +1,9 @@
-use ao_reason_workbench::core::service::UiCommand;
+use agentranch::core::service::UiCommand;
 use eframe::egui;
 
 use super::pending::Pending;
 
-const ACTION_ID_NAMESPACE: &str = "ao-reason-workbench";
+const ACTION_ID_NAMESPACE: &str = "agentranch";
 const ACTION_ID_KIND: &str = "project-action";
 
 pub(crate) fn widget_scope_id(selector: &str) -> egui::Id {

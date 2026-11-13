@@ -1,4 +1,4 @@
-use ao_reason_workbench::{
+use agentranch::{
     config::{Actor, NodeSpec},
     core::{protocol::{Envelope, PROTOCOL}, store::Store},
 };

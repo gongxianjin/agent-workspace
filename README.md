@@ -1,4 +1,4 @@
-# AO + Reason Workbench for Windows
+# agentranch
 
 这是一个原生 Rust + egui Windows 工作台；当前源码定义两个 Windows 二进制入口，分别用于 GUI 和 CLI/受管 worker。它们不是旧版 Python/Web 入口的别名，也不会自动安装服务、修改 PATH 或迁移旧账本。
 
@@ -6,7 +6,7 @@
 
 | 源码入口 | 用途 | 形成同版 Windows 构建并通过验收后的使用方式 |
 | --- | --- | --- |
-| `ao-reason-workbench`（GUI 二进制） | 管理应用和项目工作流的 GUI；源码入口用于在窗口中查看状态、项目阶段、阻塞原因和操作回执。 | 只有同版 Windows 构建与配套 worker 通过运行验收后，才可双击对应的 `ao-reason-workbench.exe`；也可从终端传入下方 GUI 参数 |
+| `agentranch`（GUI 二进制） | 管理应用和项目工作流的 GUI；源码入口用于在窗口中查看状态、项目阶段、阻塞原因和操作回执。 | 只有同版 Windows 构建与配套 worker 通过运行验收后，才可双击对应的 `agentranch.exe`；也可从终端传入下方 GUI 参数 |
 | `aw-cli`（CLI/受管 worker 二进制） | 无界面 CLI/受管 worker 入口，适合脚本、诊断、MCP/stdin 场景；它不是 GUI 的替代启动器。 | 只有同版 Windows 构建通过验收后，才可使用对应的 `aw-cli.exe` 并显式提供子命令 |
 
 只有在同版 Windows 构建、配对和运行验收完成后，两个对应的 exe 才构成可交付产品入口。届时它们必须保持在同一目录；GUI 启动时会按自身目录查找同版 `aw-cli.exe`，缺失或版本不一致时不要用其他目录的 exe 代替。
@@ -16,18 +16,18 @@
 在解压后的产品目录中打开 PowerShell 或命令提示符：
 
 ```powershell
-.\ao-reason-workbench.exe
-.\ao-reason-workbench.exe --real
-.\ao-reason-workbench.exe --state-dir "D:\ao-state\workbench"
-.\ao-reason-workbench.exe --real --state-dir "D:\ao-state\workbench-real"
+.\agentranch.exe
+.\agentranch.exe --real
+.\agentranch.exe --state-dir "D:\ao-state\workbench"
+.\agentranch.exe --real --state-dir "D:\ao-state\workbench-real"
 ```
 
 不带 `--real` 时是 `local` 模式；带 `--real` 时是 `real` 模式。`--state-dir` 必须后跟非空路径，不能重复；未知参数会让 GUI 显示启动错误，而不是静默忽略。
 
 Windows 默认状态根目录来自 `%LOCALAPPDATA%`，具体目录为：
 
-- local：`%LOCALAPPDATA%\ao-reason-workbench\local`
-- real：`%LOCALAPPDATA%\ao-reason-workbench\real`
+- local：`%LOCALAPPDATA%\agentranch\local`
+- real：`%LOCALAPPDATA%\agentranch\real`
 
 显式 `--state-dir` 会覆盖默认目录。local 和 real 使用不同的状态身份；不要把一个模式的账本复用给另一个模式，也不要为了绕过错误删除账本。状态目录包含 SQLite/锁/身份文件，建议先备份再处理故障。
 
@@ -46,7 +46,7 @@ GUI 中的“本地诊断”只打开本地 Rust 固定 fixture。它明确标�
 ```powershell
 .\aw-cli.exe check --config .\config.json
 .\aw-cli.exe mcp --config .\config.json
-.\aw-cli.exe local-check --state-dir "$env:LOCALAPPDATA\ao-reason-workbench\local"
+.\aw-cli.exe local-check --state-dir "$env:LOCALAPPDATA\agentranch\local"
 .\aw-cli.exe runner --config .\config.json --once
 .\aw-cli.exe runner --config .\config.json --stop-on-stdin
 .\aw-cli.exe controller --config .\config.json --once
@@ -64,7 +64,7 @@ CLI 返回非零退出码时应保留 stdout/stderr 和状态目录，不要通�
 
 以下是界面中的显式阶段顺序，不表示整条产品链已实现或验收。当前已由本地 headless Rust/SQLite 回归覆盖的范围包括项目创建/导入/确认、任务审核与阶段门槛，以及通过真实 GUI pointer action 触发的 Test、Repair、Accept、Redo 请求和其持久化门控；测试使用 synthetic ingress/fixture 数据，验证的是本地请求、状态、依赖闭包、ExitProof 与 managed-artifact 状态边界。外部 AO/Reason/模型执行、真实项目开发、远程退出/取消、Windows native window 和已验收产品包仍未建立，不会用固定样例伪装完成。`Start/Test/Repair/Accept` 作为门控入口可见，不等于现在能完成全流程。
 
-1. 双击 `ao-reason-workbench.exe`，确认两个 exe 在同一目录。
+1. 双击 `agentranch.exe`，确认两个 exe 在同一目录。
 2. 创建项目。
 3. 导入已经定稿的 UTF-8 `.md` 或 `.txt` 设计文档。文件上限为 256 KiB；导入不会重新生成设计，也不会自动调用模型。
 4. 检查显示的上传版本 `U`、文件名、完整文本和小写 SHA-256。只有在确认内容确实是要执行的文档后，点击“确认此上传版本”。文档版本或哈希过期时，确认会被拒绝。
@@ -102,7 +102,7 @@ real 是显式选择的真实模式。当前产品不会因为 real 配置缺失
 
 ### 双击后窗口提示找不到 worker
 
-确认 `aw-cli.exe` 位于 `ao-reason-workbench.exe` 同一目录，并确认两者来自同一个冻结包。不要从 PATH 或其他构建目录拼接 exe。
+确认 `aw-cli.exe` 位于 `agentranch.exe` 同一目录，并确认两者来自同一个冻结包。不要从 PATH 或其他构建目录拼接 exe。
 
 ### 状态模式不匹配
 
@@ -135,7 +135,7 @@ real 是显式选择的真实模式。当前产品不会因为 real 配置缺失
 
 打包前会检查：
 
-- `ao-reason-workbench.exe`、`aw-cli.exe` 均存在且是 PE（`MZ`）；
+- `agentranch.exe`、`aw-cli.exe` 均存在且是 PE（`MZ`）；
 - source inventory、`Cargo.toml`、`Cargo.lock`、README 和相关 source identity 没有漂移；
 - build identity 与 source digest、两个 exe 实际哈希一致；
 - PE imports 可由 Windows API set、系统 DLL 或明确 runtime 目录解析；

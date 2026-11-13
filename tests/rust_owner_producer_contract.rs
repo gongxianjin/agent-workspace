@@ -2,7 +2,7 @@
 //! These fixtures establish internal consistency only; they do not authenticate an
 //! owner, observe an operating system, persist a binding, or admit/release work.
 
-use ao_reason_workbench::core::{
+use agentranch::core::{
     owner_producer::{
         CleanupFacts, LaunchFacts, OwnedProcessPort, OwnerLaunchPlan, StreamReadOutcome,
         TerminalFacts, complete_binding, owner_evidence_files, produce_owner_evidence,

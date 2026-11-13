@@ -1,5 +1,5 @@
 // Breaks caught: float/oversize wires, unaudited schema, partial transactions, float load choice.
-use ao_reason_workbench::{config::{Actor,NodeSpec},core::{protocol::{Envelope,PROTOCOL,canonical},store::Store}};
+use agentranch::{config::{Actor,NodeSpec},core::{protocol::{Envelope,PROTOCOL,canonical},store::Store}};
 use serde_json::json;
 fn node(id:&str,slots:u32)->NodeSpec{NodeSpec{id:id.into(),address:format!("local-{id}/runner"),key_hex:if id=="B"{"07"}else{"08"}.repeat(32),slots,admitted:true,healthy:true,draining:false,templates:vec!["sum-native-v1".into(),"control-native-v1".into()]}}
 #[test]

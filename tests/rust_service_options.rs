@@ -1,4 +1,4 @@
-use ao_reason_workbench::{config::Mode, core::service::ServiceOptions};
+use agentranch::{config::Mode, core::service::ServiceOptions};
 
 #[test]
 fn service_options_debug_redacts_private_key_bytes() {

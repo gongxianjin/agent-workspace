@@ -3,7 +3,7 @@
 #[path = "support/lifecycle_reason.rs"]
 mod lifecycle_reason;
 use lifecycle_reason::LocalReason;
-use ao_reason_workbench::{config::Mode, core::{projects::Projects, service::{AppSnapshot, Readiness, ServiceHandle, ServiceOptions, UiCommand}}};
+use agentranch::{config::Mode, core::{projects::Projects, service::{AppSnapshot, Readiness, ServiceHandle, ServiceOptions, UiCommand}}};
 use serde_json::json;
 use sha2::{Digest, Sha256};
 use std::{path::{Path, PathBuf}, sync::Arc, time::{Duration, Instant}};
@@ -47,7 +47,7 @@ fn stop(handle: &mut ServiceHandle) { handle.stop(); wait(handle, |snapshot|!sna
 fn local_fixture_supports_repeated_reason_inbox() {
     let root = tempfile::tempdir().unwrap();
     let fixture = LocalReason::new(root.path(), false);
-    let reason = ao_reason_workbench::adapters::reason::Reason::new(fixture.endpoint.clone()).unwrap();
+    let reason = agentranch::adapters::reason::Reason::new(fixture.endpoint.clone()).unwrap();
     for _ in 0..3 { reason.inbox("owned-A/controller").expect("real adapter local IPC fixture contract"); }
 }
 
@@ -175,7 +175,7 @@ fn assert_unresolved_recovery(report_only: bool) {
     projects.tick().unwrap();
     let db = rusqlite::Connection::open(root.path().join("host/controller.sqlite")).unwrap();
     let raw: String = db.query_row("SELECT body FROM runs", [], |r|r.get(0)).unwrap();
-    let run: ao_reason_workbench::core::store::Run = serde_json::from_str(&raw).unwrap();
+    let run: agentranch::core::store::Run = serde_json::from_str(&raw).unwrap();
     reason.queue_run_event(&run, "status", json!({"state":if report_only {"running"}else{"unknown"},"spawn_intent":true,"session":"owned-session"}));
     if report_only {
         let work = &run.detail["project_work"];

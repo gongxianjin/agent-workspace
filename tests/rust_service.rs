@@ -1,7 +1,7 @@
-use ao_reason_workbench::{config::Mode,core::service::{ServiceHandle,ServiceOptions,UiCommand,SubmitError,Readiness}};
+use agentranch::{config::Mode,core::service::{ServiceHandle,ServiceOptions,UiCommand,SubmitError,Readiness}};
 use std::{sync::Arc,time::{Duration,Instant}};
 fn options(t:&tempfile::TempDir,mode:Mode)->ServiceOptions{ServiceOptions{mode,state_dir:t.path().join("native-state"),worker_exe:env!("CARGO_BIN_EXE_aw-cli").into(),gateway_key:None,gateway_model_token:None}}
-fn wait(h:&mut ServiceHandle,done:impl Fn(&ao_reason_workbench::core::service::AppSnapshot)->bool){let end=Instant::now()+Duration::from_secs(10);while Instant::now()<end{if done(&h.snapshot()){return}std::thread::sleep(Duration::from_millis(15));}panic!("snapshot did not reach expected state: {:?}",h.snapshot());}
+fn wait(h:&mut ServiceHandle,done:impl Fn(&agentranch::core::service::AppSnapshot)->bool){let end=Instant::now()+Duration::from_secs(10);while Instant::now()<end{if done(&h.snapshot()){return}std::thread::sleep(Duration::from_millis(15));}panic!("snapshot did not reach expected state: {:?}",h.snapshot());}
 #[test]
 fn start_is_explicit_and_real_never_falls_back(){let t=tempfile::tempdir().unwrap();let mut h=ServiceHandle::spawn(options(&t,Mode::Real),Arc::new(||{})).unwrap();assert!(!t.path().join("native-state").exists());let id=h.try_submit(UiCommand::StartLocal).unwrap();wait(&mut h,|s|s.readiness==Readiness::NotReady);let end=Instant::now()+Duration::from_secs(3);let result=loop{let r=h.drain_results();if !r.is_empty(){break r}assert!(Instant::now()<end);std::thread::yield_now();};assert_eq!(result[0].request_id,id);assert!(result[0].result.is_err());assert!(!t.path().join("native-state").exists());h.stop();}
 #[test]

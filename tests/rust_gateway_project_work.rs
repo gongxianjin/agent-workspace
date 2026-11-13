@@ -1,4 +1,4 @@
-use ao_reason_workbench::{config::{Actor, NodeSpec}, core::{project_work::{ConfirmedDocument, ProjectWork, ProjectStage, WorkTask}, ssh_gateway::{GatewayRequest, SshGatewayConfig, TransportOutput, WorkerTransport, run_once}, store::Store}};
+use agentranch::{config::{Actor, NodeSpec}, core::{project_work::{ConfirmedDocument, ProjectWork, ProjectStage, WorkTask}, ssh_gateway::{GatewayRequest, SshGatewayConfig, TransportOutput, WorkerTransport, run_once}, store::Store}};
 use serde_json::json;
 use sha2::{Digest, Sha256};
 
@@ -93,7 +93,7 @@ fn ssh_manager_open_accepts_project_work_capable_worker() {
         "identity_file":"id_ed25519","key_file":"worker.key","controller_config":"controller.json",
         "state_dir":"gateway-state","remote_worker":"/opt/aw/aw-cli","remote_config":"/etc/aw/worker.json",
         "artifact_sha256":"ab".repeat(32),"artifact_bytes":123,"timeout_secs":5})).unwrap()).unwrap();
-    let mut manager=ao_reason_workbench::core::ssh_manager::SshManager::open(&base.join("gateway.json")).unwrap();
+    let mut manager=agentranch::core::ssh_manager::SshManager::open(&base.join("gateway.json")).unwrap();
     let mut capture=CaptureTransport{start_frame:Vec::new()};
     let result=manager.dispatch_project_with_transport(&Actor::Local("owner".into()),&work,&mut capture,100).unwrap();
     assert_eq!(result.status.as_str(),"unknown","EOF transport leaves run unknown, slot retained");

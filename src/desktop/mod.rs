@@ -4,7 +4,7 @@ pub mod launch;
 pub mod pending;
 pub mod projects;
 use std::{collections::VecDeque, sync::Arc, time::{Duration, SystemTime, UNIX_EPOCH}};
-use ao_reason_workbench::{config::Mode, core::service::{AppSnapshot, ServiceHandle, ServiceOptions, UiCommand, SubmitError, Readiness, RunView}};
+use agentranch::{config::Mode, core::service::{AppSnapshot, ServiceHandle, ServiceOptions, UiCommand, SubmitError, Readiness, RunView}};
 use eframe::egui::{self, RichText};
 
 struct Receipt { id: u64, action: String, detail: String, failed: bool }
@@ -103,7 +103,7 @@ impl Workbench {
             return;
         }
         egui::Panel::top("mode-toolbar").show(ui, |ui| {
-            ui.heading("AO + Reason 工作台");
+            ui.heading("agentranch 工作台");
             ui.strong(if !self.diagnostics { "设计文档工作流 · 真实执行须配置 AO / Reason" } else if snapshot.mode == Mode::Local { "本地体验 · 无真实 AO/Reason/模型" } else { "真实模式 · 直接 SSH Worker；配置不等于远端已验证" });
             ui.horizontal_wrapped(|ui| {
                 ui.label(format!("服务：{}", if self.diagnostics { readiness(&snapshot.readiness) } else if snapshot.running { "后台运行；执行依赖见项目阻塞" } else { "后台已停止" }));

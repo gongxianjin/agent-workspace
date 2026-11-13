@@ -1,7 +1,7 @@
 //! RUST-RUNNER-STOP-01. Real regular CLI, owned IPC/HTTP endpoints and durable ledgers.
 //! Prepared tests are NOT_RUN until an admitted compiler/runtime window records actual exits.
 //! Default continuous/EOF survival is deliberately NOT tested by leaving an uncleanable child.
-use ao_reason_workbench::{
+use agentranch::{
     adapters::{AoPort, Observation, WorkRequest},
     config::{Actor, Config, NodeSpec, ServiceLock},
     core::{runner::Runner, store::Store},

@@ -1,5 +1,5 @@
 //! Loopback-only artifact tests. Synthetic AO reports are NOT exit evidence.
-use ao_reason_workbench::{
+use agentranch::{
     adapters::{ao_http::AoHttp, AoPort, Observation, WorkRequest},
     config::AoConfig,
     core::project_work::{ConfirmedDocument, ProjectStage, ProjectWork, WorkTask},

@@ -1,5 +1,5 @@
 // Breaks caught: unauthenticated/expired/foreign envelopes and unsafe static nodes.
-use ao_reason_workbench::{config::NodeSpec, core::protocol::{Envelope, PROTOCOL}};
+use agentranch::{config::NodeSpec, core::protocol::{Envelope, PROTOCOL}};
 use serde_json::json;
 fn message() -> Envelope {
     Envelope { schema: PROTOCOL.into(), message_id:"m-1".into(), deployment:"native-test".into(),
@@ -45,7 +45,7 @@ fn unsafe_node_shapes_are_rejected_but_valid_static_node_is_accepted() {
 
 #[test]
 fn execution_identity_is_canonical_and_legacy_project_optional_inputs_survive() {
-    use ao_reason_workbench::core::protocol::ExecutionIdentity;
+    use agentranch::core::protocol::ExecutionIdentity;
     let source_sha256 = "11".repeat(32);
     let artifact_sha256 = "22".repeat(32);
     let first: ExecutionIdentity = serde_json::from_value(json!({

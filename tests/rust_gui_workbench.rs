@@ -1,7 +1,7 @@
 #![cfg(feature = "gui")]
 #[path = "../src/desktop/mod.rs"]
 mod desktop;
-use ao_reason_workbench::{config::Mode, core::service::{ServiceOptions, Readiness, UiCommand}};
+use agentranch::{config::Mode, core::service::{ServiceOptions, Readiness, UiCommand}};
 use eframe::egui;
 use std::{path::Path, time::{Duration, Instant}};
 
@@ -10,7 +10,7 @@ fn app(state: &Path, mode: Mode) -> (desktop::Workbench, egui::Context) {
     let app = desktop::Workbench::new(ServiceOptions { mode, state_dir: state.into(), worker_exe: env!("CARGO_BIN_EXE_aw-cli").into(), gateway_key: None, gateway_model_token: None }, &ctx).unwrap();
     (app, ctx)
 }
-fn wait(app: &mut desktop::Workbench, predicate: impl Fn(&ao_reason_workbench::core::service::AppSnapshot) -> bool) {
+fn wait(app: &mut desktop::Workbench, predicate: impl Fn(&agentranch::core::service::AppSnapshot) -> bool) {
     let until = Instant::now() + Duration::from_secs(12);
     while Instant::now() < until {
         app.poll();
@@ -97,7 +97,7 @@ fn project_managed_paths_render_actual_core_locations_without_starting_work() {
 // actual refresh widget may ask core to prepare and return managed locations.
 #[test]
 fn project_legacy_paths_stay_unprepared_until_explicit_refresh_click() {
-    use ao_reason_workbench::core::projects::Projects;
+    use agentranch::core::projects::Projects;
     let t = tempfile::tempdir().unwrap();
     let state = t.path().join("state");
     drop(Projects::open(&state).unwrap());
@@ -383,7 +383,7 @@ fn click_close_dialog(app: &mut desktop::Workbench, ctx: &egui::Context, label: 
 
 #[test]
 fn normal_close_pending_confirmation_can_cancel_then_waits_for_accepted_receipt() {
-    use ao_reason_workbench::core::projects::Projects;
+    use agentranch::core::projects::Projects;
     let t = tempfile::tempdir().unwrap();
     let mut projects = Projects::open(t.path()).unwrap();
     projects.command(UiCommand::ProjectCreate { name: "已有项目".into() }).unwrap();

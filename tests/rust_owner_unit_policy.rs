@@ -1,5 +1,5 @@
 //! Platform-neutral parser/policy tests, not Linux runtime evidence.
-use ao_reason_workbench::adapters::owner_exec::policy::*;
+use agentranch::adapters::owner_exec::policy::*;
 
 #[test]
 fn unified_path_is_unique_absolute_and_normalized() {

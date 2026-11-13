@@ -1,4 +1,4 @@
-use ao_reason_workbench::{
+use agentranch::{
     config::{Actor, Mode, NodeSpec},
     core::{
         projects::Projects,
@@ -125,7 +125,7 @@ fn real_service_projects_configured_node_and_readiness_blocker_without_fixture_f
             assert_eq!(snapshot.nodes[0].id, "B");
             assert!(!snapshot.nodes[0].healthy, "configured real node must remain unready until signed ready");
             assert!(snapshot.nodes[0].source.contains("readiness"));
-            assert_eq!(snapshot.readiness, ao_reason_workbench::core::service::Readiness::NotReady);
+            assert_eq!(snapshot.readiness, agentranch::core::service::Readiness::NotReady);
             break;
         }
         assert!(Instant::now() < deadline, "real node/blocker projection deadline: {:?}", snapshot);

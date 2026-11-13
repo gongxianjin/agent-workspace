@@ -41,7 +41,7 @@ fn worker_value() -> serde_json::Value {
 
 #[test]
 fn current_unit_config_is_accepted_and_explicit_remains_default() {
-    use ao_reason_workbench::core::native_worker::NativeWorkerConfig;
+    use agentranch::core::native_worker::NativeWorkerConfig;
     let mut value = worker_value();
     let cfg: NativeWorkerConfig = serde_json::from_value(value.clone()).unwrap();
     assert_eq!(serde_json::to_value(cfg).unwrap()["cgroup_root_mode"], "explicit");

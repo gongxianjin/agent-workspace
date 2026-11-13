@@ -2,7 +2,7 @@
 //! SSH, or a real model: they pin the child-side template routing, the
 //! work.json binding, and the model-response file manifest validation that
 //! turns untrusted model output into managed static files.
-use ao_reason_workbench::core::project_work::{ConfirmedDocument, ProjectStage, ProjectWork, WorkTask};
+use agentranch::core::project_work::{ConfirmedDocument, ProjectStage, ProjectWork, WorkTask};
 use serde_json::json;
 use sha2::{Digest, Sha256};
 use std::process::Command;
@@ -98,7 +98,7 @@ fn owner_child_project_mode_accepts_absolute_work_directory() {
 /// and size budget before anything is written.
 #[test]
 fn model_response_files_manifest_is_validated() {
-    use ao_reason_workbench::core::owner_project::ModelFiles;
+    use agentranch::core::owner_project::ModelFiles;
     let index_html = b"<html><body id=\"top\"></body></html>";
     let valid = json!({"files": [
         {"path": "index.html", "content": String::from_utf8_lossy(index_html)},
@@ -138,8 +138,8 @@ fn model_response_files_manifest_is_validated() {
 /// and carry the model-call evidence without ever containing the token.
 #[test]
 fn project_report_shape_has_model_evidence_and_no_token() {
-    use ao_reason_workbench::core::owner_project::project_report;
-    use ao_reason_workbench::core::owner_project::evidence_digest;
+    use agentranch::core::owner_project::project_report;
+    use agentranch::core::owner_project::evidence_digest;
     let report = project_report(
         "session-1",
         &work(),
@@ -166,7 +166,7 @@ fn project_report_shape_has_model_evidence_and_no_token() {
 /// strict output contract; the document text rides inside as data.
 #[test]
 fn project_prompt_binds_document_and_output_contract() {
-    let prompt = ao_reason_workbench::core::owner_project::model_prompt(&work()).unwrap();
+    let prompt = agentranch::core::owner_project::model_prompt(&work()).unwrap();
     assert!(prompt.contains("PROJECT_WORK_JSON"));
     assert!(prompt.contains(&work().document.sha256));
     assert!(prompt.contains("files"));
@@ -180,7 +180,7 @@ fn project_prompt_binds_document_and_output_contract() {
 /// (multiple fences, mixed content) must fail closed.
 #[test]
 fn model_output_fence_stripping_is_bounded() {
-    use ao_reason_workbench::core::owner_project::strip_outer_fence;
+    use agentranch::core::owner_project::strip_outer_fence;
     let inner = r#"{"files":[{"path":"index.html","content":"x"}]}"#;
     assert_eq!(strip_outer_fence(inner).unwrap(), inner);
     assert_eq!(strip_outer_fence(&format!("```json\n{inner}\n```")).unwrap(), inner);
@@ -195,7 +195,7 @@ fn model_output_fence_stripping_is_bounded() {
 /// the exact path set must agree; the child's claims are never trusted.
 #[test]
 fn workspace_packaging_cross_checks_child_manifest() {
-    use ao_reason_workbench::core::owner_project::package_workspace_files;
+    use agentranch::core::owner_project::package_workspace_files;
     let root = tempfile::tempdir().unwrap();
     let workspace = root.path();
     std::fs::write(workspace.join("index.html"), b"<html></html>").unwrap();
@@ -235,7 +235,7 @@ fn workspace_packaging_cross_checks_child_manifest() {
 /// re-verifies every file hash against the package before writing.
 #[test]
 fn manager_materializes_admitted_artifact_package() {
-    use ao_reason_workbench::core::owner_project::materialize_artifact_package;
+    use agentranch::core::owner_project::materialize_artifact_package;
     let root = tempfile::tempdir().unwrap();
     let html = "<html id=\"top\"></html>".as_bytes().to_vec();
     let css = "body{margin:0}".as_bytes().to_vec();

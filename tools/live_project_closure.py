@@ -142,7 +142,7 @@ def prepare_existing(args, key, evidence):
         require(Path(manifest["package_dir"]).resolve() == package, "package_manifest_path_mismatch")
     pinned_files = manifest.get("required_files") or manifest.get("files") or {}
     package_facts = {}
-    for label, relative in (("manager", "ao-reason-workbench.exe"), ("worker_cli", "aw-cli.exe"),
+    for label, relative in (("manager", "agentranch.exe"), ("worker_cli", "aw-cli.exe"),
                             ("helper", "tools/paramiko_gateway.py"), ("python", "runtime/python/python.exe")):
         identity = file_identity(package / relative)
         pinned = pinned_files[label] if label in pinned_files else pinned_files[relative]
@@ -250,7 +250,7 @@ def manager_session(secrets, prepared, evidence):
     process, hwnd = None, None
     with (evidence / "manager.stdout.log").open("xb") as output, (evidence / "manager.stderr.log").open("xb") as error:
         try:
-            process = subprocess.Popen([str(package / "ao-reason-workbench.exe"), "--real",
+            process = subprocess.Popen([str(package / "agentranch.exe"), "--real",
                 "--gateway-key-stdin", "--state-dir", str(evidence / "manager-state")],
                 cwd=str(package), env=env, stdin=subprocess.PIPE, stdout=output, stderr=error)
             process.stdin.write(frame)

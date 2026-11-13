@@ -17,7 +17,7 @@ mod desktop;
 #[path = "support/lifecycle_reason.rs"]
 mod lifecycle_reason;
 
-use ao_reason_workbench::{
+use agentranch::{
     config::Mode,
     core::{
         projects::Projects,
@@ -234,7 +234,7 @@ fn app(state: &Path) -> (desktop::Workbench, egui::Context) {
     (app, ctx)
 }
 
-fn wait(app: &mut desktop::Workbench, predicate: impl Fn(&ao_reason_workbench::core::service::AppSnapshot) -> bool) {
+fn wait(app: &mut desktop::Workbench, predicate: impl Fn(&agentranch::core::service::AppSnapshot) -> bool) {
     let until = Instant::now() + Duration::from_secs(8);
     while Instant::now() < until {
         app.poll();
@@ -304,7 +304,7 @@ fn click(app: &mut desktop::Workbench, ctx: &egui::Context, pos: egui::Pos2) {
 }
 
 fn project_action_scope_id(selector: &str) -> egui::Id {
-    egui::Id::unique(("ao-reason-workbench", "project-action", selector))
+    egui::Id::unique(("agentranch", "project-action", selector))
 }
 
 fn project_action_widget_id(selector: &str) -> egui::Id {
@@ -393,7 +393,7 @@ fn clicking_test_runs_real_project_command_and_does_not_auto_accept() {
     let reason = lifecycle_reason::LocalReason::new(temp.path(), true);
     let (state, id) = developed_fixture_with_endpoint(temp.path(), &reason.endpoint, "lifecycle-test");
     let (mut app, ctx) = app(&state);
-    wait(&mut app, |snapshot| snapshot.readiness == ao_reason_workbench::core::service::Readiness::Ready && snapshot.projects.iter().any(|project| project.id == id && project.phase == "developed"));
+    wait(&mut app, |snapshot| snapshot.readiness == agentranch::core::service::Readiness::Ready && snapshot.projects.iter().any(|project| project.id == id && project.phase == "developed"));
     let before = app.snapshot();
     assert_eq!(before.projects[0].actions.len(), 1);
     assert_eq!(before.projects[0].can_test, true);
@@ -421,7 +421,7 @@ fn repair_requires_reason_and_click_dispatches_only_after_reason_entry() {
     let reason = lifecycle_reason::LocalReason::new(temp.path(), true);
     let (state, id) = test_failed_fixture_with_endpoint(temp.path(), &reason.endpoint, "lifecycle-test");
     let (mut app, ctx) = app(&state);
-    wait(&mut app, |snapshot| snapshot.readiness == ao_reason_workbench::core::service::Readiness::Ready && snapshot.projects.iter().any(|project| project.id == id && project.phase == "test_failed"));
+    wait(&mut app, |snapshot| snapshot.readiness == agentranch::core::service::Readiness::Ready && snapshot.projects.iter().any(|project| project.id == id && project.phase == "test_failed"));
     assert_eq!(app.snapshot().projects[0].can_repair, true);
     assert!(host_project_runs(&state, "repair").is_empty());
 
@@ -519,7 +519,7 @@ fn not_ready_disables_test_selector_without_dispatch() {
     let (state, id) = developed_fixture(temp.path());
     let (mut app, ctx) = app(&state);
     wait(&mut app, |snapshot| snapshot.projects.iter().any(|project| project.id == id && project.phase == "developed"));
-    assert_eq!(app.snapshot().readiness, ao_reason_workbench::core::service::Readiness::NotReady);
+    assert_eq!(app.snapshot().readiness, agentranch::core::service::Readiness::NotReady);
 
     let _button = seek(&mut app, &ctx, "运行独立测试");
     let selector = format!("project:{id}:test");

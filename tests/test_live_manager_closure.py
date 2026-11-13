@@ -76,7 +76,7 @@ class ForegroundFixture:
         self.now = 0.0
         self.foreground = foreground
         self.becomes_foreground_at = becomes_foreground_at
-        self.pid, self.title, self.visible = 123, "AO + Reason 工作台", True
+        self.pid, self.title, self.visible = 123, "agentranch 工作台", True
         self.width, self.height = 1672, 1256
         self.input_events = []
         self.user = self
@@ -130,7 +130,7 @@ class ManagerWindowTests(unittest.TestCase):
             @staticmethod
             def owned_pid(hwnd): return 999 if hwnd == 2 else 123
             @staticmethod
-            def window_title(hwnd): return "AO + Reason 工作台" if hwnd != 1 else "helper"
+            def window_title(hwnd): return "agentranch 工作台" if hwnd != 1 else "helper"
         self.assertEqual(driver.find_manager_window(UI(), 123, timeout=1), 3)
 
     def test_foreground_gate_fails_closed_without_owned_foreground(self):
@@ -228,7 +228,7 @@ class PreflightBoundaryTests(unittest.TestCase):
             package, evidence = root / "package", root / "evidence"
             package.mkdir(); evidence.mkdir()
             pinned = {}
-            for name, relative in (("manager", "ao-reason-workbench.exe"), ("worker_cli", "aw-cli.exe"),
+            for name, relative in (("manager", "agentranch.exe"), ("worker_cli", "aw-cli.exe"),
                                    ("helper", "tools/paramiko_gateway.py"), ("python", "runtime/python/python.exe")):
                 path = package / relative
                 path.parent.mkdir(parents=True, exist_ok=True)

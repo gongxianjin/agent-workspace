@@ -1,6 +1,6 @@
 #[path = "../src/desktop/launch.rs"]
 mod launch;
-use ao_reason_workbench::config::Mode;
+use agentranch::config::Mode;
 use launch::Launch;
 use std::{path::{Path, PathBuf}, process::Command};
 
@@ -9,7 +9,7 @@ fn worker_name() -> &'static str {
 }
 
 fn app_path(root: &Path) -> PathBuf {
-    root.join(if cfg!(windows) { "ao-reason-workbench.exe" } else { "ao-reason-workbench" })
+    root.join(if cfg!(windows) { "agentranch.exe" } else { "agentranch" })
 }
 
 fn install_matching_worker(root: &Path) -> PathBuf {
@@ -107,7 +107,7 @@ fn real_manager_launch_does_not_require_a_local_fixture_worker() {
     let opts = parse(root.path(), ["--real"])
         .unwrap_or_else(|error| panic!("real manager must not require a local fixture worker: {error}"));
     assert_eq!(opts.mode, Mode::Real);
-    assert_eq!(opts.state_dir, root.path().join("data/ao-reason-workbench/real"));
+    assert_eq!(opts.state_dir, root.path().join("data/agentranch/real"));
     assert!(!root.path().join(worker_name()).exists());
 }
 
@@ -153,9 +153,9 @@ fn default_and_real_modes_keep_isolated_state_defaults() {
     install_matching_worker(root.path());
     let local = parse(root.path(), []).unwrap();
     let real = parse(root.path(), ["--real"]).unwrap();
-    assert_eq!(local.state_dir, root.path().join("data/ao-reason-workbench/local"));
+    assert_eq!(local.state_dir, root.path().join("data/agentranch/local"));
     assert_eq!(real.mode, Mode::Real);
-    assert_eq!(real.state_dir, root.path().join("data/ao-reason-workbench/real"));
+    assert_eq!(real.state_dir, root.path().join("data/agentranch/real"));
 }
 
 #[test]

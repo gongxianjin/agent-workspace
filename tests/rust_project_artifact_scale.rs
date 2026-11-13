@@ -9,10 +9,10 @@
 //! bound; the manager-side materializer round-trips it; over-budget output
 //! still fails closed.
 
-use ao_reason_workbench::core::owner_project::{self, ARTIFACT_TOTAL_BUDGET};
-use ao_reason_workbench::core::protocol::ExecutionIdentity;
-use ao_reason_workbench::core::project_work::ProjectWork;
-use ao_reason_workbench::core::worker_owner::{self, OwnerVerification};
+use agentranch::core::owner_project::{self, ARTIFACT_TOTAL_BUDGET};
+use agentranch::core::protocol::ExecutionIdentity;
+use agentranch::core::project_work::ProjectWork;
+use agentranch::core::worker_owner::{self, OwnerVerification};
 use serde_json::json;
 use sha2::{Digest, Sha256};
 

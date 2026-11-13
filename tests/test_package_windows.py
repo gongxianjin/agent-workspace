@@ -34,8 +34,8 @@ class WindowsPackagingCliTests(unittest.TestCase):
 
     def _make_fixture(self):
         for relative, content in {
-            "Cargo.toml": "[package]\nname = 'ao-reason-workbench'\nversion = '0.1.0'\n",
-            "Cargo.lock": "version = 3\n\n[[package]]\nname = 'ao-reason-workbench'\nversion = '0.1.0'\n\n[[package]]\nname = 'fixture-dependency'\nversion = '1.0.0'\nsource = 'registry+fixture'\n",
+            "Cargo.toml": "[package]\nname = 'agentranch'\nversion = '0.1.0'\n",
+            "Cargo.lock": "version = 3\n\n[[package]]\nname = 'agentranch'\nversion = '0.1.0'\n\n[[package]]\nname = 'fixture-dependency'\nversion = '1.0.0'\nsource = 'registry+fixture'\n",
             "rust-toolchain.toml": "[toolchain]\nchannel = '1.99.1'\n",
             "packaging/protocol-v1.md": "fixture protocol\n",
             "README.md": "# Synthetic fixture, not a product\n",
@@ -73,7 +73,7 @@ class WindowsPackagingCliTests(unittest.TestCase):
         self.metadata.write_text(json.dumps(metadata), encoding="utf-8")
 
         self.binary_dir.mkdir()
-        for binary in ("ao-reason-workbench.exe", "aw-cli.exe"):
+        for binary in ("agentranch.exe", "aw-cli.exe"):
             (self.binary_dir / binary).write_bytes(b"MZ" + binary.encode("ascii"))
         canonical = json.dumps(inventory["files"], sort_keys=True, separators=(",", ":")).encode("utf-8")
         self.build_identity.write_text(json.dumps({
@@ -88,7 +88,7 @@ class WindowsPackagingCliTests(unittest.TestCase):
                     "sha256": hashlib.sha256((self.binary_dir / binary).read_bytes()).hexdigest(),
                     "bytes": (self.binary_dir / binary).stat().st_size,
                 }
-                for binary in ("ao-reason-workbench.exe", "aw-cli.exe")
+                for binary in ("agentranch.exe", "aw-cli.exe")
             },
         }), encoding="utf-8")
         self.system_dir.mkdir(parents=True)
@@ -469,7 +469,7 @@ class WindowsPackagingCliTests(unittest.TestCase):
     def test_existing_zip_destination_is_rejected_without_overwrite(self):
         files = json.loads(self.inventory.read_text(encoding="utf-8"))["files"]
         source_digest = hashlib.sha256(json.dumps(files, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
-        archive = self.output_parent / f"ao-reason-workbench-0.1.0-windows-x86_64-release-{source_digest[:16]}.zip"
+        archive = self.output_parent / f"agentranch-0.1.0-windows-x86_64-release-{source_digest[:16]}.zip"
         archive.write_bytes(b"prior evidence")
         result = self._run()
         self.assertEqual(result.returncode, 2)
@@ -486,7 +486,7 @@ class WindowsPackagingCliTests(unittest.TestCase):
         manifest = json.loads((package_dir / "PACKAGE-MANIFEST.json").read_text(encoding="utf-8"))
 
         self.assertEqual(manifest["status"], "PACKAGE_CREATED_RUNTIME_NOT_YET_VERIFIED")
-        self.assertEqual(set(manifest["executables"]), {"ao-reason-workbench.exe", "aw-cli.exe"})
+        self.assertEqual(set(manifest["executables"]), {"agentranch.exe", "aw-cli.exe"})
         self.assertTrue((package_dir / "README.md").is_file())
         self.assertEqual((package_dir / "BUILD-IDENTITY.json").read_bytes(), self.build_identity.read_bytes())
         for binary, spec in manifest["executables"].items():
@@ -527,13 +527,13 @@ class WindowsPackagingCliTests(unittest.TestCase):
         result = self._run(timeout=35)
 
         self.assertEqual(result.returncode, 2)
-        self.assertIn("PE import inspection timed out: ao-reason-workbench.exe", result.stderr)
+        self.assertIn("PE import inspection timed out: agentranch.exe", result.stderr)
         self.assertNotIn("Traceback", result.stderr)
         partial = list(self.output_parent.iterdir())
         self.assertEqual(len(partial), 1)
         failure = partial[0] / "PACKAGE-FAILURE.json"
         self.assertTrue(failure.is_file())
-        self.assertIn("RuntimeError: PE import inspection timed out: ao-reason-workbench.exe", failure.read_text(encoding="utf-8"))
+        self.assertIn("RuntimeError: PE import inspection timed out: agentranch.exe", failure.read_text(encoding="utf-8"))
 
     def test_missing_inventory_is_a_clean_input_failure(self):
         self.inventory.unlink()
@@ -546,7 +546,7 @@ class WindowsPackagingCliTests(unittest.TestCase):
         files = json.loads(self.inventory.read_text(encoding="utf-8"))["files"]
         canonical = json.dumps(files, sort_keys=True, separators=(",", ":")).encode("utf-8")
         source_digest = hashlib.sha256(canonical).hexdigest()
-        existing = self.output_parent / f"ao-reason-workbench-0.1.0-windows-x86_64-release-{source_digest[:16]}"
+        existing = self.output_parent / f"agentranch-0.1.0-windows-x86_64-release-{source_digest[:16]}"
         existing.mkdir()
         result = self._run()
         self.assertEqual(result.returncode, 2)
@@ -732,7 +732,7 @@ class WindowsPackagingCliTests(unittest.TestCase):
 
     def test_build_identity_rejects_manifest_package_version_mismatch_before_output(self):
         path = self.source / "Cargo.toml"
-        path.write_text("[package]\nname = 'ao-reason-workbench'\nversion = '0.2.0'\n", encoding="utf-8")
+        path.write_text("[package]\nname = 'agentranch'\nversion = '0.2.0'\n", encoding="utf-8")
         inventory = json.loads(self.inventory.read_text(encoding="utf-8"))
         inventory["files"]["Cargo.toml"] = {
             "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),

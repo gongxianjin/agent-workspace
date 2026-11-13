@@ -1,15 +1,15 @@
 use anyhow::{Result,Context,ensure};
-use ao_reason_workbench::{config::{Config,Actor,Mode,valid_id},core::{store::Store,controller::ControlService,service::{ServiceOptions,ServiceHandle,UiCommand,Readiness},mcp,ssh_gateway::{GatewayRequest,SshWorkerTransport}}};
+use agentranch::{config::{Config,Actor,Mode,valid_id},core::{store::Store,controller::ControlService,service::{ServiceOptions,ServiceHandle,UiCommand,Readiness},mcp,ssh_gateway::{GatewayRequest,SshWorkerTransport}}};
 use std::{path::{Path,PathBuf},io::Read,sync::Arc,time::{Duration,Instant}};
 use serde_json::json;
 
 fn owner_exec(args: &[String]) -> Result<()> {
     let path = PathBuf::from(option(args, "--config")?);
-    ao_reason_workbench::core::native_worker::run(&path)
+    agentranch::core::native_worker::run(&path)
 }
 
 fn owner_child(args: &[String]) -> Result<()> {
-    ao_reason_workbench::core::native_worker::fixed_child(&args[1..])
+    agentranch::core::native_worker::fixed_child(&args[1..])
 }
 fn gateway_helper(args:&[String])->Result<PathBuf>{
     match args.iter().position(|value|value=="--helper").and_then(|index|args.get(index+1)) {
@@ -34,9 +34,9 @@ fn ssh_gateway(args:&[String])->Result<()> {
     let mut key=Vec::new();std::io::stdin().lock().take(65537).read_to_end(&mut key)?;ensure!(key.len()<=65536,"private key exceeds 64KiB");
     let mut raw=Vec::new();std::fs::File::open(&request_path)?.take(131073).read_to_end(&mut raw)?;ensure!(raw.len()<=131072,"gateway request exceeds 128KiB");
     let request:GatewayRequest=serde_json::from_slice(&raw)?;std::fs::create_dir(&evidence)?;
-    let mut manager=ao_reason_workbench::core::ssh_manager::SshManager::open(&config_path)?;
+    let mut manager=agentranch::core::ssh_manager::SshManager::open(&config_path)?;
     let mut transport=SshWorkerTransport::with_paramiko(manager.config().clone(),helper,key)?;
-    let result=manager.execute_request_with_transport(&request,&mut transport,ao_reason_workbench::core::native_worker::clock())?;
+    let result=manager.execute_request_with_transport(&request,&mut transport,agentranch::core::native_worker::clock())?;
     std::fs::write(evidence.join("result.json"),serde_json::to_vec_pretty(&result)?)?;println!("{}",serde_json::to_string(&result)?);Ok(())
 }
 
@@ -63,19 +63,19 @@ fn execute()->Result<()> {
   Some("owner-exec")=>owner_exec(&args),
   Some("owner-child")=>owner_child(&args),
   Some("ssh-gateway")=>ssh_gateway(&args),
-  Some("fixture-worker")=>ao_reason_workbench::adapters::process::fixture_worker(&args[1..]),
+  Some("fixture-worker")=>agentranch::adapters::process::fixture_worker(&args[1..]),
   Some("fixture-descendant") if args.len()==1=>loop{std::thread::sleep(Duration::from_secs(1));},
   Some("local-check")=>local_check(option(&args,"--state-dir")?.into()),
   Some("check")=>{let path=PathBuf::from(option(&args,"--config")?);let cfg=load(&path)?;let nodes=cfg.load_nodes(path.parent().unwrap_or(Path::new(".")))?;println!("{}",json!({"schema":"native-check/1","mode":cfg.mode,"role":cfg.role,"deployment":cfg.deployment,"configuration_valid":true,"nodes":nodes.len(),"active_probe":false,"external_readiness":"not_probed"}));Ok(())},
   Some("mcp")=>{let path=PathBuf::from(option(&args,"--config")?);let cfg=load(&path)?;let actor=std::env::var("AO_SESSION_ID").ok().filter(|s|valid_id(s)).map(Actor::AoSession);let controller=actor.map(|a|open_control(&path,&cfg,a)).transpose()?;mcp::serve(&mut std::io::stdin().lock(),&mut std::io::stdout().lock(),controller,cfg.mode==Mode::Local)},
-  Some("controller")=>ao_reason_workbench::core::runtime::controller(&PathBuf::from(option(&args,"--config")?),&load(&PathBuf::from(option(&args,"--config")?))?,args.iter().any(|s|s=="--once")),
+  Some("controller")=>agentranch::core::runtime::controller(&PathBuf::from(option(&args,"--config")?),&load(&PathBuf::from(option(&args,"--config")?))?,args.iter().any(|s|s=="--once")),
   Some("runner")=>{
    let once=args.iter().any(|s|s=="--once");
    let stop_on_stdin=args.iter().any(|s|s=="--stop-on-stdin");
    ensure!(!(once&&stop_on_stdin),"runner control: --once and --stop-on-stdin are incompatible");
    let path=PathBuf::from(option(&args,"--config")?);let cfg=load(&path)?;
-   if stop_on_stdin{ao_reason_workbench::core::runtime::runner_with_stdin_stop(&path,&cfg)}
-   else{ao_reason_workbench::core::runtime::runner(&path,&cfg,once)}
+   if stop_on_stdin{agentranch::core::runtime::runner_with_stdin_stop(&path,&cfg)}
+   else{agentranch::core::runtime::runner(&path,&cfg,once)}
   },
 
   Some("--help")|Some("help")=>{println!("aw-cli --identity\naw-cli check --config FILE\naw-cli mcp --config FILE\naw-cli local-check --state-dir DIR\naw-cli runner --config FILE [--once | --stop-on-stdin]\naw-cli controller --config FILE [--once]\naw-cli owner-exec --config FILE\naw-cli owner-child sum-v1 SESSION\naw-cli ssh-gateway --config FILE --request FILE --evidence-dir DIR --helper FILE --key-stdin\n--key-stdin: read one short-lived SSH private key from stdin; no private-key file is accepted\n--stop-on-stdin: first stdin frame must be stop LF or stop CRLF; stops local supervision only\ncontroller/runner real service: not ready until explicit adapter configuration");Ok(())},

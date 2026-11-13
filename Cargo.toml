@@ -1,11 +1,11 @@
 [package]
-name = "ao-reason-workbench"
+name = "agentranch"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.95"
-description = "Native AO + Reason desktop controller and runner"
+description = "agentranch: native Windows manager + Linux agent-worker workbench"
 license = "MIT"
-default-run = "ao-reason-workbench"
+default-run = "agentranch"
 
 [features]
 default = ["gui"]
@@ -42,7 +42,7 @@ ring = "0.17.14"
 tempfile = "3"
 
 [[bin]]
-name = "ao-reason-workbench"
+name = "agentranch"
 path = "src/main.rs"
 required-features = ["gui"]
 

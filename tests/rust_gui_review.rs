@@ -1,7 +1,7 @@
 #![cfg(feature = "gui")]
 #[path = "../src/desktop/mod.rs"]
 mod desktop;
-use ao_reason_workbench::{config::Mode, core::{projects::Projects, service::{ServiceOptions, UiCommand}}};
+use agentranch::{config::Mode, core::{projects::Projects, service::{ServiceOptions, UiCommand}}};
 use eframe::egui;
 use std::{path::Path, time::{Duration, Instant}};
 
@@ -32,7 +32,7 @@ fn recovered_pending_exit(state: &Path) -> (desktop::Workbench, egui::Context, S
     wait(&mut app, |s| s.projects.len() == 1);
     (app, ctx, id)
 }
-fn wait(app: &mut desktop::Workbench, predicate: impl Fn(&ao_reason_workbench::core::service::AppSnapshot) -> bool) {
+fn wait(app: &mut desktop::Workbench, predicate: impl Fn(&agentranch::core::service::AppSnapshot) -> bool) {
     let end = Instant::now() + Duration::from_secs(6);
     loop {
         app.poll();
@@ -98,7 +98,7 @@ fn click(app: &mut desktop::Workbench, ctx: &egui::Context, pos: egui::Pos2) {
     }
 }
 fn project_action_widget_id(selector: &str) -> egui::Id {
-    let scope = egui::Id::unique(("ao-reason-workbench", "project-action", selector));
+    let scope = egui::Id::unique(("agentranch", "project-action", selector));
     egui::Id::unique(scope.value().wrapping_add(1))
 }
 fn action_response(ctx: &egui::Context, selector: &str) -> egui::Response {

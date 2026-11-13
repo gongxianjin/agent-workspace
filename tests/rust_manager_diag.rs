@@ -1,6 +1,6 @@
 //! manager-diag.log contract: manager-local diagnostic lines under --state-dir,
 //! key events only, no secrets. Each line: `<unix_ts>\t<event>\t<detail>`.
-use ao_reason_workbench::core::service::append_diag;
+use agentranch::core::service::append_diag;
 use std::path::Path;
 
 fn temp_dir(tag:&str)->std::path::PathBuf {

@@ -11,7 +11,7 @@
 //! connect, while refusing a different certificate.
 #![cfg(target_os = "linux")]
 
-use ao_reason_workbench::adapters::model_endpoint::ModelEndpoint;
+use agentranch::adapters::model_endpoint::ModelEndpoint;
 use rustls::pki_types::pem::PemObject;
 use rustls::pki_types::{CertificateDer, PrivateKeyDer, ServerName};
 use std::io::{Read, Write};

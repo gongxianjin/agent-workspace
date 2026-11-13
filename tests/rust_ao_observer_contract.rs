@@ -2,7 +2,7 @@
 //! The HTTP fixture is local-only and does not represent AO or Linux acceptance.
 //! An AO report, even with termination-looking fields, is not independent wait proof.
 
-use ao_reason_workbench::{
+use agentranch::{
     adapters::{ao_http::AoHttp, AoPort, Observation},
     config::AoConfig,
 };

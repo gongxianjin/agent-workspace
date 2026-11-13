@@ -2,7 +2,7 @@
 //! project-work-v1 run. Real service loop with a synthetic local transport
 //! runtime (helper file exists; the synthetic interpreter cannot execute, so
 //! the exchange fails offline and the run stays unknown, slot retained).
-use ao_reason_workbench::core::service::{ServiceHandle, ServiceOptions, UiCommand};
+use agentranch::core::service::{ServiceHandle, ServiceOptions, UiCommand};
 use serde_json::json;
 use std::{path::PathBuf, sync::Arc, time::{Duration, Instant}};
 
@@ -38,7 +38,7 @@ fn stage_transport_runtime() {
     }
 }
 
-fn wait_for(service: &mut ServiceHandle, request: u64) -> ao_reason_workbench::core::service::CommandResult {
+fn wait_for(service: &mut ServiceHandle, request: u64) -> agentranch::core::service::CommandResult {
     let until = Instant::now() + Duration::from_secs(10);
     loop {
         if let Some(reply) = service.drain_results().into_iter().find(|reply| reply.request_id == request) {
@@ -52,7 +52,7 @@ fn wait_for(service: &mut ServiceHandle, request: u64) -> ao_reason_workbench::c
 fn spawn_service(root: &tempfile::TempDir, with_credentials: bool) -> ServiceHandle {
     stage_transport_runtime();
     ServiceHandle::spawn(ServiceOptions {
-        mode: ao_reason_workbench::config::Mode::Real,
+        mode: agentranch::config::Mode::Real,
         state_dir: root.path().join("ui"),
         worker_exe: "unused.exe".into(),
         gateway_key: with_credentials.then(|| b"07".repeat(32)),
@@ -102,7 +102,7 @@ fn project_dispatch_without_token_is_rejected_before_any_run() {
     std::fs::write(&doc, "# 设计\n成都遛娃静态页（无 token 测试）。\n").unwrap();
     stage_transport_runtime();
     let mut service = ServiceHandle::spawn(ServiceOptions {
-        mode: ao_reason_workbench::config::Mode::Real,
+        mode: agentranch::config::Mode::Real,
         state_dir: root.path().join("ui"),
         worker_exe: "unused.exe".into(),
         gateway_key: Some(b"07".repeat(32)),

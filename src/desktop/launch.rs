@@ -1,6 +1,6 @@
 use std::{path::{Path, PathBuf}, process::Command};
 use anyhow::ensure;
-use ao_reason_workbench::config::Mode;
+use agentranch::config::Mode;
 use serde_json::Value;
 
 const WORKER_BINARY: &str = if cfg!(windows) { "aw-cli.exe" } else { "aw-cli" };
@@ -32,7 +32,7 @@ impl Launch {
         }
         ensure!(real || !gateway_key_stdin,"--gateway-key-stdin requires --real");
         let mode = if real { Mode::Real } else { Mode::Local };
-        let state_dir = state.unwrap_or_else(|| data_home.join("ao-reason-workbench").join(if real { "real" } else { "local" }));
+        let state_dir = state.unwrap_or_else(|| data_home.join("agentranch").join(if real { "real" } else { "local" }));
         let parent = executable.parent().ok_or_else(|| anyhow::anyhow!("application executable has no parent directory"))?;
         let worker_exe = parent.join(WORKER_BINARY);
         if mode == Mode::Local {

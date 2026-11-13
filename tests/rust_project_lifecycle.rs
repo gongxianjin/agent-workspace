@@ -1,7 +1,7 @@
 //! Public Projects/Store boundary regression. All signed ingress and ExitProof
 //! values below are synthetic fixture data, NOT native exit/ownership evidence.
 //! No Runner, AO/model request, GUI, native worker, or host verifier is started.
-use ao_reason_workbench::{
+use agentranch::{
     config::NodeSpec,
     core::{
         project_work::{ProjectStage, ProjectWork, WorkTask},

@@ -1,4 +1,4 @@
-use ao_reason_workbench::{config::{Actor, NodeSpec}, core::{ssh_gateway::{GatewayRequest, SshGatewayConfig}, store::Store}};
+use agentranch::{config::{Actor, NodeSpec}, core::{ssh_gateway::{GatewayRequest, SshGatewayConfig}, store::Store}};
 use serde_json::json;
 
 fn node() -> NodeSpec {

@@ -1,6 +1,6 @@
 #[path = "../src/desktop/approval.rs"]
 mod approval;
-use ao_reason_workbench::core::service::{ApprovalView, OfferedDecision, DecisionKind, UiCommand};
+use agentranch::core::service::{ApprovalView, OfferedDecision, DecisionKind, UiCommand};
 
 fn offer() -> ApprovalView {
     ApprovalView {

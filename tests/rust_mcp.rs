@@ -1,5 +1,5 @@
 use std::{path::Path,process::{Child,Command,ExitStatus,Stdio},io::{Read,Write}};
-use ao_reason_workbench::core::store::Run;
+use agentranch::core::store::Run;
 use serde_json::{Value,json};
 fn config(t:&tempfile::TempDir)->std::path::PathBuf {std::fs::write(t.path().join("B.key"),"09".repeat(32)).unwrap();let p=t.path().join("config.json");std::fs::write(&p,serde_json::to_vec(&json!({"schema":"ao-reason-config/1","mode":"local","role":"controller","deployment":"mcp-test","state_dir":"state","nodes":[{"id":"B","address":"local-B/runner","key_file":"B.key","slots":1,"templates":["sum-native-v1"],"admitted":true,"healthy":true}]})).unwrap()).unwrap();p}
 fn invoke(p:&std::path::Path,host:bool,requests:&[Value])->Vec<Value>{let mut c=Command::new(env!("CARGO_BIN_EXE_aw-cli"));c.args(["mcp","--config"]).arg(p).env_remove("AO_SESSION_ID").stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped());if host{c.env("AO_SESSION_ID","synthetic-host-session");}let mut child=c.spawn().unwrap();{let mut stdin=child.stdin.take().unwrap();for request in requests{writeln!(stdin,"{}",request).unwrap();}}let output=child.wait_with_output().unwrap();assert!(output.status.success(),"{}",String::from_utf8_lossy(&output.stderr));String::from_utf8(output.stdout).unwrap().lines().map(|s|serde_json::from_str(s).unwrap()).collect()}

@@ -1,6 +1,6 @@
 //! Local scripted SQLite admission contract only. No OS owner, child, AO, Reason,
 //! model, native GUI, remote host or Linux facts are observed by these tests.
-use ao_reason_workbench::{
+use agentranch::{
     config::{Actor, NodeSpec},
     core::{
         protocol::{Envelope, PROTOCOL, canonical},

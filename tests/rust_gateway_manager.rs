@@ -1,5 +1,5 @@
 //! Production manager config/Store with an offline transport seam; no SSH or GUI process.
-use ao_reason_workbench::{config::Actor, core::{ssh_gateway::{TransportOutput,WorkerTransport}, ssh_manager::SshManager}};
+use agentranch::{config::Actor, core::{ssh_gateway::{TransportOutput,WorkerTransport}, ssh_manager::SshManager}};
 use serde_json::json;
 
 struct NoRemote { calls:usize }
@@ -43,7 +43,7 @@ fn config_to_gateway_uses_real_ledger_and_retains_unknown_reservation() {
 }
 #[test]
 fn existing_queued_run_is_not_assigned_in_place_of_current_dispatch() {
-    use ao_reason_workbench::{config::{Config,NodeSpec},core::store::Store};
+    use agentranch::{config::{Config,NodeSpec},core::store::Store};
     let(root,path)=fixture();
     let controller:Config=serde_json::from_slice(&std::fs::read(root.path().join("controller.json")).unwrap()).unwrap();
     let state=controller.prepare_state(root.path()).unwrap();
@@ -60,7 +60,7 @@ fn existing_queued_run_is_not_assigned_in_place_of_current_dispatch() {
 }
 #[test]
 fn background_service_loads_pinned_worker_without_starting_transport() {
-    use ao_reason_workbench::{config::Mode,core::service::{ServiceHandle,ServiceOptions,UiCommand}};
+    use agentranch::{config::Mode,core::service::{ServiceHandle,ServiceOptions,UiCommand}};
     use std::{sync::Arc,time::{Duration,Instant}};
     let(root,path)=fixture();
     let mut service=ServiceHandle::spawn(ServiceOptions{mode:Mode::Real,state_dir:root.path().join("ui"),worker_exe:"unused.exe".into(),gateway_key:None,gateway_model_token:None},Arc::new(||{})).unwrap();

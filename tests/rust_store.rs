@@ -1,5 +1,5 @@
 // Breaks caught: persistence/ownership, overbooking, duplicate claim, unsafe bind/release/retry.
-use ao_reason_workbench::{config::{Actor,NodeSpec},core::store::{Store,ExitProof}};
+use agentranch::{config::{Actor,NodeSpec},core::store::{Store,ExitProof}};
 use tempfile::TempDir;
 fn nodes()->Vec<NodeSpec>{vec![NodeSpec{id:"B".into(),address:"local-b/runner".into(),key_hex:"07".repeat(32),slots:1,admitted:true,healthy:true,draining:false,templates:vec!["sum-native-v1".into(),"control-native-v1".into()]}]}
 fn owner()->Actor{Actor::Local("tester".into())}

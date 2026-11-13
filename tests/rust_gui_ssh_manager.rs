@@ -1,7 +1,7 @@
 #![cfg(feature="gui")]
 #[path="../src/desktop/mod.rs"]
 mod desktop;
-use ao_reason_workbench::{config::Mode,core::service::ServiceOptions};
+use agentranch::{config::Mode,core::service::ServiceOptions};
 use eframe::egui;
 
 // Removing the real-mode gateway controls makes the actual headless rendered output fail.

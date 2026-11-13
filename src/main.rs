@@ -1,7 +1,7 @@
 #![cfg_attr(target_os = "windows", windows_subsystem = "windows")]
 mod desktop;
 use anyhow::Context;
-use ao_reason_workbench::core::service::ServiceOptions;
+use agentranch::core::service::ServiceOptions;
 use eframe::egui;
 use std::io::Read;
 
@@ -83,7 +83,7 @@ fn read_gateway_secrets(mut input: impl Read) -> anyhow::Result<GatewaySecrets> 
 }
 
 fn main() -> eframe::Result {
-    let executable = std::env::current_exe().unwrap_or_else(|_| "ao-reason-workbench.exe".into());
+    let executable = std::env::current_exe().unwrap_or_else(|_| "agentranch.exe".into());
     let home = std::env::var_os("LOCALAPPDATA").or_else(|| std::env::var_os("XDG_DATA_HOME"))
         .map(std::path::PathBuf::from).or_else(|| std::env::var_os("HOME").map(|p| std::path::PathBuf::from(p).join(".local/share")))
         .unwrap_or_else(|| executable.parent().unwrap_or(std::path::Path::new(".")).join("state"));
@@ -96,10 +96,10 @@ fn main() -> eframe::Result {
             Ok((launch, gateway_secrets))
         });
     let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default().with_title("AO + Reason 工作台").with_inner_size([1100., 800.]).with_min_inner_size([720., 540.]),
+        viewport: egui::ViewportBuilder::default().with_title("agentranch 工作台").with_inner_size([1100., 800.]).with_min_inner_size([720., 540.]),
         ..Default::default()
     };
-    eframe::run_native("AO + Reason 工作台", options, Box::new(move |cc| {
+    eframe::run_native("agentranch 工作台", options, Box::new(move |cc| {
         let result = launch.and_then(|(l, gateway_secrets)| {
             let (gateway_key, gateway_model_token) = match gateway_secrets {
                 Some(secrets) => {

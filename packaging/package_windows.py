@@ -248,7 +248,7 @@ def main():
     require(files['Cargo.toml']['sha256'] == context['cargo_toml_sha256'], 'Cargo.toml context mismatch')
     require(files['rust-toolchain.toml']['sha256'] == context['rust_toolchain_sha256'], 'rust-toolchain context mismatch')
     require(identity.get('profile') == args.profile, 'Build identity profile mismatch')
-    expected_executables = ('ao-reason-workbench.exe', 'aw-cli.exe')
+    expected_executables = ('agentranch.exe', 'aw-cli.exe')
     identity_executables = identity.get('executables') or {}
     require(set(identity_executables) == set(expected_executables), 'Build identity executable set mismatch')
     for binary in expected_executables:
@@ -256,7 +256,7 @@ def main():
         require(binary_path.is_file() and not binary_path.is_symlink() and binary_path.read_bytes()[:2] == b'MZ', 'Release PE missing: ' + binary)
         spec = identity_executables[binary]
         require(spec.get('sha256') == digest(binary_path) and spec.get('bytes') == binary_path.stat().st_size, f'Executable identity drift: {binary}')
-    name = 'ao-reason-workbench-0.1.0-windows-x86_64-' + args.profile + '-' + source_digest[:16]
+    name = 'agentranch-0.1.0-windows-x86_64-' + args.profile + '-' + source_digest[:16]
     output = output_parent / name
     archive = output_parent / (name + '.zip')
     existing_names = {path.name for path in output_parent.iterdir()} if output_parent.is_dir() else set()
@@ -274,7 +274,7 @@ def main():
         key = (package['name'], package['version'], package.get('source'))
         require(key in locked_ids, 'Cargo metadata package mismatch: ' + package['id'])
     require(all(package.get('license') or package.get('license_file') for package in packages), 'Dependency license metadata absent')
-    for binary in ('ao-reason-workbench.exe', 'aw-cli.exe'):
+    for binary in ('agentranch.exe', 'aw-cli.exe'):
         path = args.binary_dir / binary
         require(path.is_file() and path.read_bytes()[:2] == b'MZ', 'Release PE missing: ' + binary)
     output.mkdir(parents=True, exist_ok=False)
@@ -287,12 +287,12 @@ def main():
         'signing': 'UNSIGNED', 'native_runtime_verification': 'NOT_RUN', 'linux_native_verification': 'NOT_RUN_BY_PACKAGER',
         'live_ao_reason_model_verification': 'NOT_AUTHORIZED_NOT_RUN', 'executables': {
             binary: {'sha256': digest(args.binary_dir / binary), 'bytes': (args.binary_dir / binary).stat().st_size}
-            for binary in ('ao-reason-workbench.exe', 'aw-cli.exe')},
+            for binary in ('agentranch.exe', 'aw-cli.exe')},
         'imports': {}, 'runtime_dlls': [], 'dependencies': [], 'python_runtime': python_runtime}
     try:
-        for binary in ('ao-reason-workbench.exe', 'aw-cli.exe'):
+        for binary in ('agentranch.exe', 'aw-cli.exe'):
             shutil.copyfile(args.binary_dir / binary, output / binary)
-        queue = [output / binary for binary in ('ao-reason-workbench.exe', 'aw-cli.exe')]
+        queue = [output / binary for binary in ('agentranch.exe', 'aw-cli.exe')]
         inspected = set()
         while queue:
             binary = queue.pop(0)
@@ -392,8 +392,8 @@ def main():
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(path, destination)
         (output / 'PACKAGE-NOTES.txt').write_text(
-            'AO + Reason Workbench 0.1.0 - Windows x86_64 GNU\n'
-            'Double-click ao-reason-workbench.exe. Keep aw-cli.exe beside it.\n'
+            'agentranch 0.1.0 - Windows x86_64 GNU\n'
+            'Double-click agentranch.exe. Keep aw-cli.exe beside it.\n'
             'Local experience is a Rust controlled fixture, NOT real AO/Reason/model execution.\n'
             + ('Bundled Python runtime is included at runtime/python/ with hash-bound ABI/version/license inventory; use runtime/python/python.exe for the explicitly configured Paramiko gateway.\n'
                + f"Python runtime version: {python_runtime['python_version']}; Paramiko version: {python_runtime['paramiko_version']}; ABI: {python_runtime['abi']}.\n"

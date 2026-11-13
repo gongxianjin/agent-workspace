@@ -243,7 +243,7 @@ def main():
     require(identity.get('target') == 'x86_64-pc-windows-gnu', 'Build identity target mismatch')
     require(identity.get('metadata_sha256') == digest(args.metadata), 'Build identity metadata mismatch')
     require(identity.get('toolchain') == context['toolchain'] == '1.99.1', 'Build identity toolchain mismatch')
-    require(identity.get('package_version') == context['package_version'] == '0.1.0', 'Build identity package version mismatch')
+    require(identity.get('package_version') == context['package_version'] == '0.2.0', 'Build identity package version mismatch')
     require(files['Cargo.lock']['sha256'] == context['cargo_lock_sha256'], 'Cargo.lock context mismatch')
     require(files['Cargo.toml']['sha256'] == context['cargo_toml_sha256'], 'Cargo.toml context mismatch')
     require(files['rust-toolchain.toml']['sha256'] == context['rust_toolchain_sha256'], 'rust-toolchain context mismatch')
@@ -256,7 +256,7 @@ def main():
         require(binary_path.is_file() and not binary_path.is_symlink() and binary_path.read_bytes()[:2] == b'MZ', 'Release PE missing: ' + binary)
         spec = identity_executables[binary]
         require(spec.get('sha256') == digest(binary_path) and spec.get('bytes') == binary_path.stat().st_size, f'Executable identity drift: {binary}')
-    name = 'agentranch-0.1.0-windows-x86_64-' + args.profile + '-' + source_digest[:16]
+    name = 'agentranch-0.2.0-windows-x86_64-' + args.profile + '-' + source_digest[:16]
     output = output_parent / name
     archive = output_parent / (name + '.zip')
     existing_names = {path.name for path in output_parent.iterdir()} if output_parent.is_dir() else set()
@@ -392,7 +392,7 @@ def main():
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(path, destination)
         (output / 'PACKAGE-NOTES.txt').write_text(
-            'agentranch 0.1.0 - Windows x86_64 GNU\n'
+            'agentranch 0.2.0 - Windows x86_64 GNU\n'
             'Double-click agentranch.exe. Keep aw-cli.exe beside it.\n'
             'Local experience is a Rust controlled fixture, NOT real AO/Reason/model execution.\n'
             + ('Bundled Python runtime is included at runtime/python/ with hash-bound ABI/version/license inventory; use runtime/python/python.exe for the explicitly configured Paramiko gateway.\n'

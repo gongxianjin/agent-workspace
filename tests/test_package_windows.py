@@ -34,8 +34,8 @@ class WindowsPackagingCliTests(unittest.TestCase):
 
     def _make_fixture(self):
         for relative, content in {
-            "Cargo.toml": "[package]\nname = 'agentranch'\nversion = '0.1.0'\n",
-            "Cargo.lock": "version = 3\n\n[[package]]\nname = 'agentranch'\nversion = '0.1.0'\n\n[[package]]\nname = 'fixture-dependency'\nversion = '1.0.0'\nsource = 'registry+fixture'\n",
+            "Cargo.toml": "[package]\nname = 'agentranch'\nversion = '0.2.0'\n",
+            "Cargo.lock": "version = 3\n\n[[package]]\nname = 'agentranch'\nversion = '0.2.0'\n\n[[package]]\nname = 'fixture-dependency'\nversion = '1.0.0'\nsource = 'registry+fixture'\n",
             "rust-toolchain.toml": "[toolchain]\nchannel = '1.99.1'\n",
             "packaging/protocol-v1.md": "fixture protocol\n",
             "README.md": "# Synthetic fixture, not a product\n",
@@ -82,7 +82,7 @@ class WindowsPackagingCliTests(unittest.TestCase):
             "target": "x86_64-pc-windows-gnu",
             "toolchain": "1.99.1",
             "profile": "release",
-            "package_version": "0.1.0",
+            "package_version": "0.2.0",
             "executables": {
                 binary: {
                     "sha256": hashlib.sha256((self.binary_dir / binary).read_bytes()).hexdigest(),
@@ -469,7 +469,7 @@ class WindowsPackagingCliTests(unittest.TestCase):
     def test_existing_zip_destination_is_rejected_without_overwrite(self):
         files = json.loads(self.inventory.read_text(encoding="utf-8"))["files"]
         source_digest = hashlib.sha256(json.dumps(files, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
-        archive = self.output_parent / f"agentranch-0.1.0-windows-x86_64-release-{source_digest[:16]}.zip"
+        archive = self.output_parent / f"agentranch-0.2.0-windows-x86_64-release-{source_digest[:16]}.zip"
         archive.write_bytes(b"prior evidence")
         result = self._run()
         self.assertEqual(result.returncode, 2)
@@ -546,7 +546,7 @@ class WindowsPackagingCliTests(unittest.TestCase):
         files = json.loads(self.inventory.read_text(encoding="utf-8"))["files"]
         canonical = json.dumps(files, sort_keys=True, separators=(",", ":")).encode("utf-8")
         source_digest = hashlib.sha256(canonical).hexdigest()
-        existing = self.output_parent / f"agentranch-0.1.0-windows-x86_64-release-{source_digest[:16]}"
+        existing = self.output_parent / f"agentranch-0.2.0-windows-x86_64-release-{source_digest[:16]}"
         existing.mkdir()
         result = self._run()
         self.assertEqual(result.returncode, 2)
@@ -731,8 +731,10 @@ class WindowsPackagingCliTests(unittest.TestCase):
         self.assertEqual(list(self.output_parent.iterdir()), [])
 
     def test_build_identity_rejects_manifest_package_version_mismatch_before_output(self):
+        # Rewrite the manifest to a DIFFERENT version than the pinned 0.2.0 so
+        # the mismatch check still exercises rejection (not a no-op rewrite).
         path = self.source / "Cargo.toml"
-        path.write_text("[package]\nname = 'agentranch'\nversion = '0.2.0'\n", encoding="utf-8")
+        path.write_text("[package]\nname = 'agentranch'\nversion = '9.9.9'\n", encoding="utf-8")
         inventory = json.loads(self.inventory.read_text(encoding="utf-8"))
         inventory["files"]["Cargo.toml"] = {
             "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),

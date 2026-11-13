@@ -22,7 +22,7 @@ Windows Manager（原生 GUI）          Linux Worker（172.28.8.221，示例部
 
 ## 2. 包内容（v0.2-win 冻结包）
 
-冻结包目录名形如 `agentranch-0.1.0-windows-x86_64-release-<source-sha8>`，包含：
+冻结包目录名形如 `agentranch-0.2.0-windows-x86_64-release-<source-sha8>`，包含：
 
 | 文件 | 作用 |
 |---|---|

@@ -3,6 +3,7 @@ pub mod approval;
 pub mod launch;
 pub mod pending;
 pub mod projects;
+pub mod theme;
 use std::{collections::VecDeque, sync::Arc, time::{Duration, SystemTime, UNIX_EPOCH}};
 use agentranch::{config::Mode, core::service::{AppSnapshot, ServiceHandle, ServiceOptions, UiCommand, SubmitError, Readiness, RunView}};
 use eframe::egui::{self, RichText};
@@ -103,13 +104,13 @@ impl Workbench {
             return;
         }
         egui::Panel::top("mode-toolbar").show(ui, |ui| {
-            ui.heading("agentranch 工作台");
-            ui.strong(if !self.diagnostics { "设计文档工作流 · 真实执行须配置 AO / Reason" } else if snapshot.mode == Mode::Local { "本地体验 · 无真实 AO/Reason/模型" } else { "真实模式 · 直接 SSH Worker；配置不等于远端已验证" });
+            ui.heading(RichText::new("agentranch 工作台").color(theme::BRAND));
+            ui.strong(RichText::new(if !self.diagnostics { "设计文档工作流 · 拆分 → 审核 → 开发 → 测试 → 验收" } else if snapshot.mode == Mode::Local { "本地体验 · 无真实 AO/Reason/模型" } else { "真实模式 · 直接 SSH Worker；配置不等于远端已验证" }).color(theme::BRAND));
             ui.horizontal_wrapped(|ui| {
                 ui.label(format!("服务：{}", if self.diagnostics { readiness(&snapshot.readiness) } else if snapshot.running { "后台运行；执行依赖见项目阻塞" } else { "后台已停止" }));
                 ui.label(format!("等待回执：{}", self.pending_count()));
-                ui.selectable_value(&mut self.diagnostics, false, "设计文档工作流");
-                ui.selectable_value(&mut self.diagnostics, true, "本地诊断（可选）");
+                ui.selectable_value(&mut self.diagnostics, false, "项目工作流");
+                ui.selectable_value(&mut self.diagnostics, true, "高级 · 本地诊断");
                 if self.diagnostics && snapshot.mode == Mode::Local {
                     self.button(ui, "启动本地体验", matches!(snapshot.readiness, Readiness::NotStarted | Readiness::NotReady), "start".into(), UiCommand::StartLocal);
                 }
@@ -120,8 +121,12 @@ impl Workbench {
             });
             if !self.diagnostics && snapshot.mode == Mode::Local { ui.small("本地体验仅用于可选诊断；项目真实执行不会回退到模拟 AO / Reason / 模型。"); }
             ui.small(format!("状态目录：{}", self.state_dir));
-            if let Some(notice) = &self.notice { ui.strong(notice); }
+            if let Some(notice) = &self.notice { ui.strong(RichText::new(notice).color(theme::WARN)); }
         });
+        // Node/dependency engineering state: full detail only in diagnostics;
+        // the workflow view keeps a single honest status line so local mode
+        // stays visible before startup (dependency text is an anchor for tests).
+        if self.diagnostics {
         egui::Panel::bottom("dependencies").resizable(true).default_size(155.).show(ui, |ui| {
             egui::ScrollArea::vertical().id_salt("dependency-scroll").max_height(220.).show(ui, |ui| {
                 ui.strong("节点与依赖");
@@ -136,6 +141,16 @@ impl Workbench {
                 ui.small(format!("快照生成：{}；不是远端进度证明。关闭窗口不等于取消任务。", stamp(snapshot.observed_at)));
             });
         });
+        } else {
+            egui::Panel::bottom("dependency-status").default_size(26.).show(ui, |ui| {
+                ui.horizontal(|ui| {
+                    ui.small("节点与依赖：");
+                    for d in &snapshot.dependencies {
+                        ui.small(format!("{}：{} · {}", d.id, d.state, d.detail));
+                    }
+                });
+            });
+        }
         if !self.diagnostics {
             if snapshot.mode == Mode::Real {
                 egui::Panel::top("direct-ssh-manager").default_size(190.).show(ui, |ui| {
